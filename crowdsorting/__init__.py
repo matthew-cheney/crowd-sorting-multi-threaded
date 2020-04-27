@@ -18,7 +18,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database/crowdsorting.db'
 app.config['SQLALCHEMY_BINDS'] = {
     'admin_data': 'sqlite:///database/admin_data.db',
     'docs': 'sqlite:///database/docs.db',
-    'doc_pairs': 'sqlite:///database/doc_pairs.db'
+    'doc_pairs': 'sqlite:///database/doc_pairs.db',
+    'sorting_algorithms': 'sqlite:///database/sorting_algorithms.db',
                                   }
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

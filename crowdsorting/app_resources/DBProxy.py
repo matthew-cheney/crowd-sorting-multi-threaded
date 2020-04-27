@@ -1,7 +1,9 @@
+import pickle
 import uuid
 
 from crowdsorting import db
-from crowdsorting.database.models import Judge, Project, Doc
+from crowdsorting.database.models import Judge, Project, Doc, SortingProxy, \
+    DocPair
 from crowdsorting.settings.configurables import *
 
 def is_user_exists(email):
@@ -77,7 +79,7 @@ def add_project(name, sorting_algorithm, number_of_docs, public, join_code, desc
         return False
     db.session.add(Project(
         name=name,
-        sorting_algorithm=sorting_algorithm,
+        sorting_algorithm_id=sorting_algorithm,
         description=description,
         public=public,
         selection_prompt=DEFAULT_SELECTION_PROMPT,
@@ -115,10 +117,50 @@ def add_num_docs_to_project(project_id, num_docs):
     db.session.commit()
     return True
 
-def add_sorting_algorithm_filepath_to_project(project_id, filepath):
-    project = db.sesson.query(Project).filter_by(id=project_id).first()
+def add_sorting_algorithm_id_to_project(project_id, proxy_id):
+    project = db.session.query(Project).filter_by(id=project_id).first()
     if project is None:
         return False
-    project.path_to_sorting_algorithm = filepath
+    project.sorting_algorithm_id = proxy_id
     db.session.commit()
     return True
+
+def add_proxy(proxy, project_name):
+    proxy_btyes = pickle.dumps(proxy)
+    db.session.add(SortingProxy(project_name=project_name, proxy=proxy_btyes))
+    db.session.commit()
+
+    proxy_found = db.session.query(SortingProxy).filter_by(project_name=project_name).first()
+    return proxy_found.id
+
+def get_proxy(proxy_id):
+    proxy = db.session.query(SortingProxy).filter_by(id=proxy_id).first()
+    if proxy is None:
+        return False
+    return proxy
+
+def get_project_id(name):
+    project = db.session.query(Project).filter_by(name=name).first()
+    if project is None:
+        return None
+    return project.id
+
+def delete_sorting_proxy(sorting_proxy_id=None, project_name=None):
+    if sorting_proxy_id is not None:
+        proxy = db.session.query(SortingProxy).filter_by(id=sorting_proxy_id).first()
+    elif project_name is not None:
+        proxy = db.session.query(SortingProxy).filter_by(project_name=project_name).first()
+    else:
+        return
+    if proxy is None:
+        return
+    del(proxy)
+    db.session.commit()
+
+def delete_doc_pairs(project_id):
+    db.session.query(DocPair).filter_by(project_id=project_id).delete()
+    db.session.commit()
+
+def delete_project(project_id):
+    db.session.query(Project).filter_by(id=project_id).delete()
+    db.session.commit()

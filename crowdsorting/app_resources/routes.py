@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, request, flash
 import pickle
 
 from crowdsorting import app, cookie_crypter, pairselector_options
-from crowdsorting.app_resources import StringList, DBProxy
+from crowdsorting.app_resources import StringList, DBProxy, ProjectHandler
 from crowdsorting.app_resources.route_decorators import login_required, admin_required
 from crowdsorting.database.models import Judge
 from crowdsorting.settings.configurables import PICKLES_PATH
@@ -83,55 +83,24 @@ def add_project():
     public = (True if request.form.get('public') == 'on' else False)
     join_code = request.form.get('join_code')
     description = request.form.get('description')
-
-    # Create project entry in database
-    project_id = DBProxy.add_project(
+    message, status = ProjectHandler.create_project(
         name=project_name,
-        sorting_algorithm=sorting_algorithm_name,
-        number_of_docs=0,
+        sorting_algorithm_name=sorting_algorithm_name,
         public=public,
         join_code=join_code,
-        description=description
+        description=description,
+        files=request.files.getlist("file"),
     )
-
-    if not project_id:
-        flash('project name already used')
-        return redirect(url_for('admin'))
-
-    # Identify selected sorting algorithm
-    target_algorithm = None
-    for algorithm in pairselector_options:
-        if sorting_algorithm_name == algorithm.get_algorithm_name():
-            target_algorithm = algorithm
-            break
-    if target_algorithm is None:
-        flash('sorting algorithm not found')
-        return redirect(url_for('dashboard'))
-
-    # Insert files into database
-    filenames = DBProxy.insert_files(request.files.getlist("file"),
-                           project_id)
-
-    # Create algorithm proxy for project and pickle it
-    project_proxy = target_algorithm(project_name)
-    project_proxy.initialize_selector(filenames)
-    pickle_proxy(project_proxy)
-
-    # Update project in databse with new info
-    DBProxy.add_num_docs_to_project(project_id, len(filenames))
-    DBProxy.add_sorting_algorithm_filepath_to_project(project_id, f'{PICKLES_PATH}/{project_name}.pkl')
-
-    flash(f'added project {project_name} with {len(filenames)} docs')
+    flash(message, status)
     return redirect(url_for('dashboard'))
 
-def pickle_proxy(proxy):
-    with open(f'{PICKLES_PATH}/{proxy.project_name}.pkl', 'wb') as f:
-        pickle.dump(proxy, f)
-
-def unpickle_proxy(project_name):
-    try:
-        with open(f'{PICKLES_PATH}/{project_name}.pkl', 'rb') as f:
-            proxy = pickle.load(f)
-        return proxy
-    except FileNotFoundError:
-        return None
+@app.route('/deleteProject', methods=['POST'])
+@login_required
+@admin_required
+def delete_project():
+    project_name = request.form.get('project_name_delete', None)
+    if project_name is None:
+        return redirect(url_for('dashboard'))
+    message, status = ProjectHandler.delete_project(project_name)
+    flash(message, status)
+    return redirect(url_for('dashboard'))
