@@ -32,8 +32,8 @@
                             Name:
                         </td>
                         <td>
-                            {{ name }}
-                            <input name="name" value="{{ name }}" hidden>
+                            {{ project.name }}
+                            <input name="name" value="{{ project.name }}" hidden>
                         </td>
                     </tr>
                     <tr>
@@ -41,7 +41,7 @@
                             Description:
                         </td>
                         <td>
-                            <textarea class="form-control" id="description" name="description" maxlength="588">{{ description }}</textarea>
+                            <textarea class="form-control" id="description" name="description" maxlength="588">{{ project.description }}</textarea>
                         </td>
                     </tr>
                     <tr>
@@ -49,7 +49,7 @@
                             Selection Prompt:
                         </td>
                         <td>
-                            <input type="text" name="selection_prompt" class="info_input" value="{{ selection_prompt }}">
+                            <input type="text" name="selection_prompt" class="info_input" value="{{ project.selection_prompt }}">
                         </td>
                     </tr>
                     <tr>
@@ -57,7 +57,7 @@
                             Preferred Label:
                         </td>
                         <td>
-                            <input type="text" name="preferred_prompt" class="info_input" value="{{ preferred_prompt }}">
+                            <input type="text" name="preferred_prompt" class="info_input" value="{{ project.preferred_prompt }}">
                         </td>
                     </tr>
                     <tr>
@@ -65,7 +65,7 @@
                             Unpreferred Label:
                         </td>
                         <td>
-                            <input type="text" name="unpreferred_prompt" class="info_input" value="{{ unpreferred_prompt }}">
+                            <input type="text" name="unpreferred_prompt" class="info_input" value="{{ project.unpreferred_prompt }}">
                         </td>
                     </tr>
                   </table>
@@ -74,7 +74,7 @@
     Edit Instruction Page
                 </button></h3>
                   <div class="collapse" id="collapse_instruction">
-                  <div id="summernote_instruction">{{ instruction_page|safe }}</div>
+                  <div id="summernote_instruction">{{ project.landing_page|safe }}</div>
                   <input id="instruction_page_html" name="instruction_page" value="" hidden>
                   </div>
 
@@ -82,7 +82,7 @@
     Edit Consent Page
                 </button></h3>
                   <div class="collapse" id="collapse_consent">
-                  <div id="summernote_consent" class="text-left">{{ consent_form|safe }}</div>
+                  <div id="summernote_consent" class="text-left">{{ project.consent_form|safe }}</div>
                   <input id="consent_page_html" name="consent_page" value="" hidden>
                   </div>
             </div>

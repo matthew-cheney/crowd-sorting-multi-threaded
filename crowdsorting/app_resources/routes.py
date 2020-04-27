@@ -2,7 +2,8 @@ from flask import render_template, redirect, url_for, request, flash
 import pickle
 
 from crowdsorting import app, cookie_crypter, pairselector_options
-from crowdsorting.app_resources import StringList, DBProxy, ProjectHandler
+from crowdsorting.app_resources import StringList, DBProxy, ProjectHandler, \
+    JudgeHandler
 from crowdsorting.app_resources.route_decorators import login_required, admin_required
 from crowdsorting.database.models import Judge
 from crowdsorting.settings.configurables import PICKLES_PATH
@@ -103,4 +104,47 @@ def delete_project():
         return redirect(url_for('dashboard'))
     message, status = ProjectHandler.delete_project(project_name)
     flash(message, status)
+    return redirect(url_for('dashboard'))
+
+@app.route('/editproject', methods=['POST'])
+@login_required
+@admin_required
+def edit_project():
+    project_name = request.form.get('project_name_edit', None)
+    if project_name is None:
+        flash('project not found', 'warning')
+        return redirect(url_for('dashboard'))
+    project = DBProxy.get_project(project_name=project_name)
+    if project is None:
+        flash('project not found', 'warning')
+        return redirect(url_for('dashboard'))
+    return render_template('editproject.html', project=project)
+
+@app.route('/updateprojectinfo', methods=['POST'])
+@login_required
+@admin_required
+def update_project_info():
+    name = request.form.get('name')
+    description = request.form.get('description')
+    selection_prompt = request.form.get('selection_prompt')
+    preferred_prompt = request.form.get('preferred_prompt')
+    unpreferred_prompt = request.form.get('unpreferred_prompt')
+    consent_form = request.form.get('consent_page')
+    instruction_page = request.form.get('instruction_page')
+    success = ProjectHandler.update_project_info(
+        name, description, selection_prompt, preferred_prompt,
+    unpreferred_prompt, consent_form, instruction_page)
+    if not success:
+        flash(f'unable to update project {name}', 'danger')
+        return redirect(url_for('dashboard'))
+
+    flash(f'updated project {name}', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/deleteuser', methods=['POST'])
+@login_required
+@admin_required
+def delete_user():
+    judge_id = request.form.get('user_id')
+    JudgeHandler.delete_judge(judge_id)
     return redirect(url_for('dashboard'))

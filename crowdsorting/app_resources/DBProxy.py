@@ -164,3 +164,29 @@ def delete_doc_pairs(project_id):
 def delete_project(project_id):
     db.session.query(Project).filter_by(id=project_id).delete()
     db.session.commit()
+
+def get_project(project_name=None, project_id=None):
+    if project_name is not None:
+        return db.session.query(Project).filter_by(name=project_name).first()
+    else:
+        return db.session.query(Project).filter_by(id=project_id).first()
+
+def update_project(name, description, selection_prompt, preferred_prompt,
+                        unpreferred_prompt, consent_form, landing_page):
+    project = db.session.query(Project).filter_by(name=name).first()
+    if project is None:
+        return False
+    project.description = description
+    project.selection_prompt = selection_prompt
+    project.preferred_prompt = preferred_prompt
+    project.unpreferred_prompt = unpreferred_prompt
+    project.consent_form = consent_form
+    project.landing_page = landing_page
+
+    db.session.commit()
+
+    return True
+
+def delete_judge(judge_id):
+    db.session.query(Judge).filter_by(id=judge_id).delete()
+    db.session.commit()

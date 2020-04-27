@@ -60,3 +60,8 @@ def delete_project(project_name):
     DBProxy.delete_project(project_id)
 
     return f'project {project_name} deleted', 'success'
+
+def update_project_info(name, description, selection_prompt, preferred_prompt,
+                        unpreferred_prompt, consent_form, landing_page):
+    return DBProxy.update_project(name, description, selection_prompt, preferred_prompt,
+                           unpreferred_prompt, consent_form, landing_page)

@@ -171,7 +171,7 @@
                     {% endfor %}
                     <td>
                         <form method="POST" action="deleteuser">
-                            <input type="hidden" name="email" value="{{ user.email }}">
+                            <input type="hidden" name="user_id" value="{{ judge.id }}">
                             <button type="submit" class="btn btn-danger btn-sm"><img src="{{ url_for('static', filename='trash.svg') }}"> </button>
                         </form>
                     </td>
