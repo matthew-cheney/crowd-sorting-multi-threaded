@@ -1,0 +1,416 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-12 text-center">
+        <h1>Admin Dashboard</h1>
+        <button class='btn btn-default'><a href="/crowdsorting.db" target="blank">Download!</a></button>
+    </div>
+</div>
+
+<hr/>
+
+<div class="row">
+    <div class="col-lg-4">
+        <!-- Space holder -->
+    </div>
+    <div class="col-lg-4 text-center">
+        <h3>Projects</h3>
+    </div>
+    <div class="col-lg-4 text-right">
+        <button class="btn btn-success" onclick="create_project()">Create Project</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 text-center">
+<table class="table borderless">
+                <tr>
+                    <td>
+                        Project Name
+                    </td>
+                    <td>
+                        Number of Judges
+                    </td>
+                    <td>
+                        Number of Documents
+                    </td>
+                    <td>
+                        Number of Judgments Made
+                    </td>
+                    <td>
+                        Selection Algorithm
+                    </td>
+                    <td>
+                        Delete
+                    </td>
+                </tr>
+                {% for project in all_group_projects|sort(attribute='name') %}
+                <tr>
+                    <td>
+                        {{ project.name }}
+                    </td>
+                    <td>
+                        {{ project.judges|length }}
+                    </td>
+                    <td>
+                        {{ project.docs|length }}
+                    </td>
+                    <td>
+                        {{ project.judgments|length }}
+                    </td>
+                    <td>
+                        {{ project.sorting_algorithm }}
+                    </td>
+                    <td>
+                        <form method="POST" action="editproject">
+                            <input type="hidden" name="project_name_edit" value="{{ project.name }}">
+                            <button type="submit" class="btn btn-primary btn-sm">Edit</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="POST" action="deleteProject">
+                            <input type="hidden" name="project_name_delete" value="{{ project.name }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-primary btn-sm" onclick="edit_project_users('{{ project.name }}')">Users</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% for project in public_projects|sort(attribute='name') %}
+                <tr>
+                    <td>
+                        {{ project.name }}
+                    </td>
+                    <td>
+                        {{ project.judges|length }}
+                    </td>
+                    <td>
+                        {{ project.docs|length }}
+                    </td>
+                    <td>
+                        {{ project.judgments|length }}
+                    </td>
+                    <td>
+                        {{ project.sorting_algorithm }}
+                    </td>
+                    <td>
+                        <form method="POST" action="editproject">
+                            <input type="hidden" name="project_name_edit" value="{{ project.name }}">
+                            <button type="submit" class="btn btn-primary btn-sm">Edit</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="POST" action="deleteProject">
+                            <input type="hidden" name="project_name_delete" value="{{ project.name }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-primary btn-sm" onclick="edit_project_users('{{ project.name }}')">Users</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+    </div>
+</div>
+
+<hr/>
+
+<div class="row">
+    <div class="col-lg-12 text-center">
+        <h3>Users</h3>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 text-center">
+<table class="table borderless">
+            <tr>
+                <td>
+                    Last, First
+                </td>
+                {% for project in all_group_projects %}
+                    <td>
+                        {{ project.name }}
+                    </td>
+                    {% endfor %}
+                {% for project in public_projects %}
+                    <td>
+                        {{ project.name }}
+                    </td>
+                    {% endfor %}
+            </tr>
+            {% for user in all_users|sort(attribute='firstName')|sort(attribute='lastName') %}
+                <tr>
+                    <td class="text-left">
+                        {{ user.lastName }}, {{ user.firstName }}; {{ user.email }}
+                    </td>
+                    {% for project in all_group_projects %}
+                    <td>
+                        {% if user in project.judges %}
+                            <input type="checkbox", id="{{ user.id }}_{{ project.name }}" onclick="toggleProject('{{ user.id }}', '{{ project.name }}')" checked>
+                        {% else %}
+                            <input type="checkbox", id="{{ user.id }}_{{ project.name }}" onclick="toggleProject('{{ user.id }}', '{{ project.name }}')" >
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    {% for project in public_projects %}
+                    <td>
+                        {% if user in project.judges %}
+                            <input type="checkbox", id="{{ user.id }}_{{ project.name }}" onclick="toggleProject('{{ user.id }}', '{{ project.name }}')" checked disabled>
+                        {% else %}
+                            <input type="checkbox", id="{{ user.id }}_{{ project.name }}" onclick="toggleProject('{{ user.id }}', '{{ project.name }}')" disabled>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td>
+                        <form method="POST" action="deleteuser">
+                            <input type="hidden" name="email" value="{{ user.email }}">
+                            <button type="submit" class="btn btn-danger btn-sm"><img src="{{ url_for('static', filename='trash.svg') }}"> </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+<div id="create_project_modal" class="modal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content text-center">
+          <h3>Create New Project</h3>
+
+            <form method="POST" id="create_project_form" action="addproject" enctype="multipart/form-data">
+            <table class="table borderless">
+                <tr>
+                    <td>
+                        <h4>Enter a name for the project</h4>
+                        <input type="text" name="project_name" placeholder="project name" id="project_name" onkeyup="activate_new_project_submit()">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h4>Choose a selection algorithm</h4>
+                        <div>
+                            {% for selector in selector_algorithms %}
+                            <input type="radio" name="selector_algorithm" class="selector_radio" value="{{ selector.get_algorithm_name() }}" onclick="activate_new_project_submit()"> {{ selector.get_algorithm_name() }}<br>
+                            {% endfor %}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h4>Select Files</h4>
+                        <!--<form method="POST" action="upload" enctype="multipart/form-data">-->
+                        <input type="file" id="file_uploader" name="file" autocomplete="off" multiple required>
+                        <!--<input type="submit" value="Submit" onclick="submit_project">-->
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h4>Public?</h4>
+                        <input type="checkbox" name="public">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h4>Join Code</h4>
+                        <input type="text" name="join_code">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h4>Add Description</h4>
+                        <textarea class="form-control" id="description" name="description" maxlength="588"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button id="new_project_submit" class="btn btn-md btn-success" disabled onclick="submit_project()">Create Project</button>
+                    </td>
+                </tr>
+            </table>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="processing_modal" class="modal">
+  <div class="text-center loading_modal">
+      <h3>creating project</h3>
+    <img src="{{ url_for('static', filename='loading_wheel_lg.gif')}}" class="loading_gif">
+      <h4 style="padding-top: 5px;">This may take a while</h4>
+  </div>
+</div>
+
+<div id="project_users_modal" class="modal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content text-center">
+      <h2>Project Users Modal</h2>
+      {% for project in all_projects %}
+      <div id="project_users_modal_{{ project.name }}" style="display: none;">
+          <h3>{{ project.name }}</h3>
+      <input type="text" id="add_user_search_{{ project.name|replace(" ", "__20__")|replace(",", "__21__") }}" oninput="filter_users('{{ project.name|replace(" ", "__20__")|replace(",", "__21__") }}')" placeholder="add user">
+      </div>
+      {% endfor %}
+      <div id="suggested_users" class="text-left">
+      </div>
+      <input id="project_users_current_project" value="" hidden><!-- Tracks which project is showing to hide when modal closes -->
+    </div>
+  </div>
+</div>
+
+<script>
+    function activate_admin_project_submit() {
+            document.getElementById("select_project_submit").disabled = false;
+        }
+
+        function activate_new_project_submit() {
+            if (document.getElementById("project_name").value == "") {
+                document.getElementById("new_project_submit").disabled = true;
+            } else {
+                selector_radios = document.getElementsByClassName("selector_radio")
+                one_checked = false;
+                for (radio of selector_radios) {
+                  if (radio.checked) {
+                    one_checked = true
+                    break
+                  }
+                }
+                if (one_checked && document.getElementById("file_uploader").value != "") {
+                  document.getElementById("new_project_submit").disabled = false;
+                } else {
+                  document.getElementById("new_project_submit").disabled = true;
+                }
+            }
+        }
+
+        function toggleProject(user, project) {
+
+            checkbox_id = user + "_" + project;
+
+            json_dict = {
+                user: user,
+                project: project,
+                action: "remove"
+                };
+
+            check_box = document.getElementById(checkbox_id)
+            if (check_box.checked == true) {
+                json_dict = { user: user, project: project, action: "add" };
+            }
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "addusertoproject", true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(json_dict));
+
+            }
+
+            var modal = document.getElementById("create_project_modal");
+            var project_users_modal = document.getElementById('project_users_modal')
+
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(event) {
+              console.log("window.onclick")
+              if (event.target == modal) {
+                modal.style.display = "none";
+              }
+              if (event.target == project_users_modal) {
+                project_users_modal.style.display = "none";
+                current_project = document.getElementById('project_users_current_project').value
+                document.getElementById(current_project).style.display = "none";
+              }
+            }
+
+            document.getElementById("file_uploader").onchange = function() {
+                activate_new_project_submit()
+            }
+
+
+            function create_project() {
+              modal.style.display = "block";
+            }
+
+            function submit_project() {
+              modal.style.display = "none";
+              document.getElementById('processing_modal').style.display = "block";
+              document.getElementById('create_project_form').submit();
+            }
+
+            function edit_project_users(project_name) {
+              document.getElementById('suggested_users').innerHTML = ""
+              document.getElementById('project_users_modal_' + project_name).style.display = "block";
+              project_users_modal.style.display = "block";
+              document.getElementById('project_users_current_project').value = 'project_users_modal_' + project_name
+            }
+
+            /* Each project needs:
+                list of current users
+
+                Need master lists of:
+                users by first-last name
+                users by email
+                users by id
+            */
+
+            /*
+            var master_name_dict = {
+            {% for user in all_users[:-1] %}
+                {{ user.firstName }}_{{ user.lastName }}: '{{ user.id }}',
+            {% endfor %}
+              {{ all_users[-1].firstName }}_{{ all_users[-1].lastName }}: '{{ all_users[-1].id }}'
+            }
+
+            var master_email_dict = {
+            {% for user in all_users %}
+                {{ user.email|replace("@", "__20__")|replace(".", "__21__") }}: '{{ user.id }}',
+            {% endfor %}
+            }
+            */
+
+            var master_id_dict = {
+              {% for user in all_users   %}
+                  {{ user.id }}: '{{ user.firstName }} {{ user.lastName }}, {{ user.email }}',
+              {% endfor %}
+            }
+
+
+            {% for project in all_projects %}
+            var _{{ project.name|replace(" ", "__20__")|replace(",", "__21__") }}_user_list = [{% for user in all_users %}{% if user in project.judges %}"{{ user.id }}",{% endif %}{% endfor %}]
+            {% endfor %}
+            function filter_users(project_name) {
+              query_string = document.getElementById('add_user_search_'+project_name).value
+              var return_list = get_suggested_users(project_name, query_string)
+              new_html = ""
+              for (var i = 0; i < return_list.length; i++) {
+                new_html += return_list[i] + "<br/>"
+              }
+              document.getElementById('suggested_users').innerHTML = new_html;
+            }
+
+            function get_suggested_users(project_name, query_string) {
+              toReturn = []
+              console.log(project_name, query_string)
+                for (var x in master_id_dict) {
+                  //if (x in window['_'+project_name+'_user_list']){
+                  if (window['_'+project_name+'_user_list'].includes(x)) {
+                    //console.log(x, 'already in project')
+                  }
+                  else if (master_id_dict[x].toUpperCase().includes(query_string.toUpperCase())) {
+                    //console.log("found substring", master_id_dict[x])
+                    toReturn.push(master_id_dict[x])
+                  }
+                }
+                console.log(toReturn);
+                return toReturn;
+            }
+
+
+</script>
+
+{% endblock content %}

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+
+    <!-- Bootstrap CSS -->
+
+
+
+    <!--<link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-4.3.1/css/bootstrap.min.css') }}" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    -->
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.15/dist/summernote-bs4.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.15/dist/summernote-bs4.min.js"></script>
+    
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css')}}">
+
+
+    {% if title %}
+    <title>{{ title }}</title>
+    {% else %}
+    <title>Crowd Sorting</title>
+    {% endif %}
+  </head>
+  <body>
+    <header class="site-header" id="header_bar">
+      <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand mr-4" href="{{ url_for('home') }}">Crowd Sorting</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarToggle">
+            <div class="navbar-nav mr-auto">
+              <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
+              <a class="nav-item nav-link" href="{{ url_for('about') }}">About</a>
+              {% if 'user' in session and is_authenticated%}
+              <a class="nav-item nav-link" id="layout_sorter_link" href="{{ url_for('sorter') }}">Sorter</a>
+              {% endif %}
+              {% if 'user' in session and is_admin %}
+              <a class="nav-item nav-link" href="{{ url_for('tower') }}">Control Tower</a>
+              {% endif %}
+            </div>
+            <!-- Navbar Center -->
+            <!-- Navbar Right Side -->
+            <div class="navbar-nav">
+            {% if 'user' in session and is_authenticated %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown_project" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span id="displayed_project">{{ current_project }}</span>
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  {% if all_projects|length == 0 %}
+                    <div class="dropdown-item disabled" disabled>no projects</div>
+                  {% else %}
+                  {% for proj in all_projects %}
+                    <a class="dropdown-item" href="#" onclick="set_current_project('{{ proj.name }}')">{{ proj.name }}</a>
+                  {% endfor %}
+                  {% endif %}
+                </div>
+              </li>
+              {% endif %}
+              {% if 'user' in session and is_authenticated and is_admin %}
+              <a class="nav-item nav-link" href="{{ url_for('sorted') }}">Results</a>
+              {% endif %}
+              {% if 'user' in session and is_authenticated %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" name="account_dropdown_link" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  {{ session['user'].get('email') }}
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <a class="dropdown-item" id="layout_dashboard_link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                  <a class="dropdown-item" href="{{ url_for('accountinfo') }}">Account Info</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="{{ url_for('logout_master') }}">Logout</a>
+                </div>
+              </li>
+
+              {% else %}
+              <!--<li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span id="login_dropdown">Login</span>
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <a class="dropdown-item" id="login_google" href="{{ url_for('login') }}">Login with Google</a>
+                  <a class="dropdown-item" id="login_cas" href="{{ url_for('cas.login') }}">Login with CAS</a>
+                </div>
+              </li>-->
+              <a class="navbar-brand mr-4" href="{{ url_for('cas.login') }}">Login</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main role="main" class="container">
+      <div class="row">
+        <div class="col-md-12">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+      <script>
+        function set_current_project(project_name) {
+          var http = new XMLHttpRequest();
+          http.open("POST", "selectproject/" + project_name, true);
+          http.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+          var params = "search=" + project_name; // probably use document.getElementById(...).value
+          http.send(params);
+          http.onload = function() {
+              document.getElementById('displayed_project').innerHTML = project_name;
+              location.reload();
+          }
+        }
+
+        function set_current_project_public(project_name) {
+
+          {% if 'user' in session %}
+          json_dict = {
+                    user_email: '{{ session['user'].get('email') }}',
+                    project_name: project_name
+                    };
+          {% else %}
+          json_dict = {
+                    user_email: 'none',
+                    project_name: project_name
+                    };
+          {% endif %}
+
+          var http = new XMLHttpRequest();
+          http.open("POST", "selectpublicproject", true);
+          http.setRequestHeader("Content-type","application/json");
+          http.send(JSON.stringify(json_dict));
+          http.onload = function() {
+            document.getElementById('displayed_project').innerHTML = project_name;
+            location.reload();
+          }
+        }
+      </script>
+
+
+
+          {% block content %}{% endblock %}
+    </main>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+
+
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="home_div">
+    <h1 class="text-center">Sorry!</h1>
+    <h2 class="text-center">{{ message }}</h2>
+</div>
+
+<script>
+
+    {% if refresh %}
+    setTimeout(function(){ document.getElementById("layout_sorter_link").click(); }, 10000);
+    {% endif %}
+</script>
+{% endblock content %}
