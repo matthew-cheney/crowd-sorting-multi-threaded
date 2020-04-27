@@ -297,10 +297,9 @@ def is_in_admin_file(email):
             adminBool = True
             break
     if adminBool:
-        userID = DBProxy.get_user_id(email)
         for project in DBProxy.get_all_projects():
-            DBProxy.add_user_to_project(userID,
-                                        project.name)
+            DBProxy.add_user_to_project(email,
+                                        project.id)
     return adminBool
 
 

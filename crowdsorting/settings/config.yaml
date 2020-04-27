@@ -1,9 +1,6 @@
 ---
   # APP_DOCS: 'docs'
   SECRET_KEY: 'f593300815283452ffe458531bd57266c39f1'
-  SQLALCHEMY_DATABASE_URI: 'sqlite:///database/crowdsorting.db'
-  SQLALCHEMY_BINDS: "{'user_data': 'sqlite:///database/user_data.db'}"
-  SQLALCHEMY_TRACK_MODIFICATIONS: False
   MAX_CONTENT_LENGTH: 16777216
   CAS_SERVER: "https://cas.byu.edu"
   CAS_AFTER_LOGIN: 'cas_login'
