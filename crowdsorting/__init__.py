@@ -5,6 +5,7 @@ from flask_cas import CAS
 from flask_sqlalchemy import SQLAlchemy
 
 from crowdsorting.app_resources.cookie_encoder import CookieCrypter
+from crowdsorting.app_resources.sorting_algorithms.ACJProxy import ACJProxy
 from crowdsorting.app_resources.yamlReader import yamlReader
 from oauthlib.oauth2 import WebApplicationClient
 
@@ -36,6 +37,9 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 db = SQLAlchemy(app)
 
 cookie_crypter = CookieCrypter()
+
+pairselector_options = list()
+pairselector_options.append(ACJProxy)
 
 from crowdsorting.app_resources.login_routes import *
 from crowdsorting.app_resources.routes import *

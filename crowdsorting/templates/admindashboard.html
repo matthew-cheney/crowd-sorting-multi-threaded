@@ -23,6 +23,7 @@
     </div>
 </div>
 
+<!-- List all projects, private first then public, sorted alphabetically by name -->
 <div class="row">
     <div class="col-lg-12 text-center">
 <table class="table borderless">
@@ -55,7 +56,7 @@
                         {{ project.judges|length }}
                     </td>
                     <td>
-                        {{ project.docs|length }}
+                        {{ project.number_of_docs }}
                     </td>
                     <td>
                         {{ project.judgments|length }}
@@ -89,7 +90,7 @@
                         {{ project.judges|length }}
                     </td>
                     <td>
-                        {{ project.docs|length }}
+                        {{ project.number_of_docs }}
                     </td>
                     <td>
                         {{ project.judgments|length }}
@@ -126,6 +127,7 @@
     </div>
 </div>
 
+<!-- List all users, alphabetically by last name -->
 <div class="row">
     <div class="col-lg-12 text-center">
 <table class="table borderless">
@@ -179,6 +181,7 @@
     </div>
 </div>
 
+<!-- Modal for creating new projects -->
 <div id="create_project_modal" class="modal">
     <div class="modal-dialog modal-lg">
       <div class="modal-content text-center">

@@ -34,6 +34,7 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     sorting_algorithm = db.Column(db.String(120), nullable=False)
+    path_to_sorting_algorithm = db.Column(db.String(512), default='')
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     description = db.Column(db.String(1024), nullable=False)
     public = db.Column(db.Boolean, default=False)
@@ -43,6 +44,7 @@ class Project(db.Model):
     consent_form = db.Column(db.String(1000000), nullable=False)
     landing_page = db.Column(db.String(1000000), nullable=False)
     judges = db.relationship('Judge', secondary='judges', lazy='subquery', backref=db.backref('myprojects', lazy=True))
+    number_of_docs = db.Column(db.Integer, nullable=False)
     # cjudges = db.relationship('Judge', secondary='cjudges', lazy='subquery', backref=db.backref('mycprojects', lazy=True))
     # docs = db.relationship('Doc', cascade='all')
     # judgments = db.relationship('Judgment', cascade='all')
@@ -55,7 +57,7 @@ class Project(db.Model):
         return self.name
 
 
-class Doc(db.Model, UserMixin):
+class Doc(db.Model):
     __bind_key__ = 'docs'
     __tablename__ = 'doc'
     id = db.Column(db.Integer, primary_key=True)

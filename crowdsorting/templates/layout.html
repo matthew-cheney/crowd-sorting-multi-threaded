@@ -44,39 +44,39 @@
             <div class="navbar-nav mr-auto">
               <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
               <a class="nav-item nav-link" href="{{ url_for('about') }}">About</a>
-              {% if 'user' in session and is_authenticated%}
+              {% if judge.id != None %}
               <a class="nav-item nav-link" id="layout_sorter_link" href="{{ url_for('sorter') }}">Sorter</a>
               {% endif %}
-              {% if 'user' in session and is_admin %}
+              {% if judge.is_admin %}
               <a class="nav-item nav-link" href="{{ url_for('tower') }}">Control Tower</a>
               {% endif %}
             </div>
             <!-- Navbar Center -->
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
-            {% if 'user' in session and is_authenticated %}
+            {% if judge.id != None %}
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown_project" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <span id="displayed_project">{{ current_project }}</span>
+                  <span id="displayed_project">current project</span>
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  {% if all_projects|length == 0 %}
+                  {% if judge.projects|length == 0 %}
                     <div class="dropdown-item disabled" disabled>no projects</div>
                   {% else %}
-                  {% for proj in all_projects %}
+                  {% for proj in judge.projects %}
                     <a class="dropdown-item" href="#" onclick="set_current_project('{{ proj.name }}')">{{ proj.name }}</a>
                   {% endfor %}
                   {% endif %}
                 </div>
               </li>
               {% endif %}
-              {% if 'user' in session and is_authenticated and is_admin %}
+              {% if judge.is_admin %}
               <a class="nav-item nav-link" href="{{ url_for('sorted') }}">Results</a>
               {% endif %}
-              {% if 'user' in session and is_authenticated %}
+              {% if judge.id != None %}
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" name="account_dropdown_link" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  {{ session['user'].get('email') }}
+                  {{ judge.email }}
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <a class="dropdown-item" id="layout_dashboard_link" href="{{ url_for('dashboard') }}">Dashboard</a>
@@ -133,9 +133,9 @@
 
         function set_current_project_public(project_name) {
 
-          {% if 'user' in session %}
+          {% if judge.id != None %}
           json_dict = {
-                    user_email: '{{ session['user'].get('email') }}',
+                    user_email: '{{ judge.email }}',
                     project_name: project_name
                     };
           {% else %}

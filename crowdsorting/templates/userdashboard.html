@@ -14,7 +14,7 @@
     </div>
 </div>
 
-{% if all_projects|length == 0 %}
+{% if judge.projects|length == 0 %}
 <div class="row">
     <div class="col-lg-12 text-center">
         <hr/>
@@ -28,7 +28,7 @@
         <hr/>
     </div>
 </div>
-{% for project in all_projects %}
+{% for project in judge.projects %}
 <div class="row">
   <div class="col-lg-12 text-center">
     <h2>{{ project.name }}</h2>
@@ -140,7 +140,7 @@
       function set_current_project_user_public(project_name) {
 
           json_dict = {
-                    user_email: '{{ session['user'].get('email') }}',
+                    user_email: '{{ judge.email }}',
                     project_name: project_name
                     };
 
@@ -166,7 +166,7 @@
       function remove_self_from_project() {
         project_name = document.getElementById('leave_model_project_name').value
         json_dict = {
-                    user_email: '{{ session['user'].get('email') }}',
+                    user_email: '{{ judge.email }}',
                     project_name: project_name
                     };
 
