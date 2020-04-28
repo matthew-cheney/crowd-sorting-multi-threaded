@@ -1,9 +1,12 @@
+import time
+from math import floor
+
 from flask import render_template, redirect, url_for, request, flash
 import pickle
 
 from crowdsorting import app, cookie_crypter, pairselector_options
 from crowdsorting.app_resources import StringList, DBProxy, ProjectHandler, \
-    JudgeHandler
+    JudgeHandler, PairSelector
 from crowdsorting.app_resources.route_decorators import login_required, \
     admin_required, valid_current_project
 from crowdsorting.database.models import Judge
@@ -74,8 +77,27 @@ def dashboard():
 
 @app.route('/sorter', methods=['GET'])
 @login_required
+@valid_current_project
 def sorter():
-    return render_template('sorter.html')
+    email = get_email_from_request()
+    project_name = request.cookies.get('current_project')
+    project = DBProxy.get_project(project_name=project_name)
+    pair = PairSelector.get_pair(project_name, email)
+    if type(pair) == str:
+        flash('no pair currently available', 'warning')
+        return render_template('instructions.html')
+    file_one_contents = DBProxy.get_doc_contents(pair.doc1_id)
+    file_two_contents = DBProxy.get_doc_contents(pair.doc2_id)
+    return render_template('sorter.html',
+                           pair_id=pair.id,
+                           file_one_name=pair.doc1_id,
+                           file_two_name=pair.doc2_id,
+                           project=project,
+                           time_started=floor(time.time()),
+                           timeout=120*1000,
+                           file_one=file_one_contents,
+                           file_two=file_two_contents
+                           )
 
 @app.route('/sorted', methods=['GET'])
 @login_required

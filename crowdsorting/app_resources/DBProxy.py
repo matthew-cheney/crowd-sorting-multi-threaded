@@ -3,7 +3,7 @@ import uuid
 
 from crowdsorting import db
 from crowdsorting.database.models import Judge, Project, Doc, SortingProxy, \
-    DocPair
+    DocPair, DocPairReject
 from crowdsorting.settings.configurables import *
 
 def is_user_exists(email):
@@ -111,10 +111,12 @@ def insert_files(files, project_id):
     for file in files:
         db.session.add(Doc(
             name=file.filename,
-            project_id=project_id
+            project_id=project_id,
+            contents=file.read()
         ))
     db.session.commit()
-    return [file.filename for file in files]
+    docs = db.session.query(Doc).filter_by(project_id=project_id).all()
+    return [doc.id for doc in docs]
 
 def add_num_docs_to_project(project_id, num_docs):
     project = db.session.query(Project).filter_by(id=project_id).first()
@@ -211,3 +213,44 @@ def verify_user_in_project(email, project_name):
         return False
     judge = get_judge(email)
     return judge in project.judges
+
+
+def get_pair(project_name, email):
+    project = db.session.query(Project).filter_by(name=project_name).first()
+    if project is None:
+        return 'project not found'
+    project_id = project.id
+    pairs = db.session.query(DocPair).filter_by(project_id=project_id, complete=False, checked_out=False).all()
+    if len(pairs) == 0:
+        return 'no pairs available'
+    judge = db.session.query(Judge).filter_by(email=email).first()
+    if judge is None:
+        return 'judge not found'
+    pair_rejects = db.session.query(DocPairReject).filter_by(judge_id=judge.id).all()
+    pair_rejects = [x.doc_pair_id for x in pair_rejects]
+    for pair in pairs:
+        if pair.id not in pair_rejects:
+            return pair
+    return 'no pair available for user'
+
+
+def add_doc_pairs(project_id, id_pairs):
+    for pair in id_pairs:
+        doc1_id = int(pair[0])
+        doc2_id = int(pair[1])
+        db.session.add(DocPair(project_id=project_id,
+                               doc1_id=doc1_id,
+                               doc2_id=doc2_id))
+    db.session.commit()
+
+
+def get_doc_pairs(project_id):
+    pairs = db.session.query(DocPair).filter_by(project_id=project_id).all()
+    return pairs
+
+
+def get_doc_contents(doc_id):
+    doc = db.session.query(Doc).filter_by(id=doc_id).first()
+    if doc is None:
+        return ''
+    return doc.contents

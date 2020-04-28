@@ -1,7 +1,7 @@
 import pickle
 
 from crowdsorting import pairselector_options
-from crowdsorting.app_resources import DBProxy
+from crowdsorting.app_resources import DBProxy, PairSelector
 from crowdsorting.settings.configurables import PICKLES_PATH
 
 def create_project(name, sorting_algorithm_name, public, join_code, description, files):
@@ -29,19 +29,24 @@ def create_project(name, sorting_algorithm_name, public, join_code, description,
         return 'project name already used', 'warning'
 
     # Insert files into database
-    filenames = DBProxy.insert_files(files, project_id)
+    file_ids = DBProxy.insert_files(files, project_id)
 
     # Create algorithm proxy for project
     project_proxy = target_algorithm(name)
-    project_proxy.initialize_selector(filenames)
+    project_proxy.initialize_selector(file_ids)
+
+    # Fill docpairs table in database
+    PairSelector.turn_over_round(project_proxy)
+    PairSelector.populate_doc_pairs(project_proxy)
 
     # Insert proxy into database
     proxy_id = DBProxy.add_proxy(project_proxy, name)
 
-    # Update project in databse with new info
-    DBProxy.add_num_docs_to_project(project_id, len(filenames))
+    # Update project in database with new info
+    DBProxy.add_num_docs_to_project(project_id, len(file_ids))
     DBProxy.add_sorting_algorithm_id_to_project(project_id, proxy_id)
-    f'added project {name} with {len(filenames)} docs'
+
+    f'added project {name} with {len(file_ids)} docs'
     return '', ''
 
 def delete_project(project_name):

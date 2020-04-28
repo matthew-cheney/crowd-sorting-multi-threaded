@@ -46,12 +46,16 @@ class ACJProxy:
         self.rounds = rounds
         dat = np.asarray(data)
         np.random.shuffle(dat)
-        self.acj = ACJ(dat, maxRounds, noOfChoices, f'{self.logPath}/logs', optionNames)
+        # self.acj = ACJ(dat, maxRounds, noOfChoices, f'{self.logPath}/logs', optionNames)
+        self.acj = ACJ(dat, maxRounds, noOfChoices, None, optionNames)
         self.acj.nextIDPair()
         self.roundList = self.acj.roundList[:]
         self.no_more_pairs = False
         self.total_comparisons = int(self.rounds*(self.number_of_docs/2))
         self.pair_cutoff = int(self.rounds*(self.number_of_docs/2))
+
+    def get_round_list(self):
+        return self.roundList
 
     # def get_pair(self, number_of_docs, allDocs):
     def get_pair(self):
@@ -99,6 +103,9 @@ class ACJProxy:
         self.served_not_returned[pair_id] = acj_pair
         self.total_pairs_served += 1
         return (acj_pair[0], acj_pair[1], pair_id)
+
+    def make_comparison(self, preferred_id, unpreferred_id):
+        self.acj.comp([preferred_id, unpreferred_id], True)
 
     def make_judgment(self, pair_id, easier_doc_name, harder_doc_name, duration,
                       judge_name='Unknown'):
