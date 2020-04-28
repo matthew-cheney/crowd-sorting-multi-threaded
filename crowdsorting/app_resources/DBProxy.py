@@ -12,9 +12,9 @@ def is_user_exists(email):
         return False
     return True
 
-def set_user_as_admin(email):
+def set_user_as_admin(email, admin=True):
     judge = db.session.query(Judge).filter_by(email=email).first()
-    judge.is_admin = True
+    judge.is_admin = admin
     db.session.commit()
 
 def create_user(firstName, lastName, email):
@@ -34,8 +34,11 @@ def get_all_projects():
     projects = db.session.query(Project).all()
     return projects
 
-def add_user_to_project(email, project_id):
-    project = db.session.query(Project).filter_by(id=project_id).first()
+def add_user_to_project(email, project_id=None, project_name=None):
+    if project_id is not None:
+        project = db.session.query(Project).filter_by(id=project_id).first()
+    else:
+        project = db.session.query(Project).filter_by(name=project_name).first()
     if project is None:
         return
     judge = db.session.query(Judge).filter_by(email=email).first()
@@ -68,6 +71,10 @@ def get_all_group_projects():
     return db.session.query(Project).filter_by(public=False).all()
 
 def get_all_public_projects():
+    """
+    Retrieve all public projects from the database
+    :return: list of DB Project objects
+    """
     return db.session.query(Project).filter_by(public=True).all()
 
 def get_number_of_judgments(project_id):
@@ -187,6 +194,20 @@ def update_project(name, description, selection_prompt, preferred_prompt,
 
     return True
 
+
 def delete_judge(judge_id):
     db.session.query(Judge).filter_by(id=judge_id).delete()
     db.session.commit()
+
+
+def verify_join_code(project_name, join_code):
+    project = db.session.query(Project).filter_by(name=project_name, join_code=join_code).first()
+    return project is not None
+
+
+def verify_user_in_project(email, project_name):
+    project = db.session.query(Project).filter_by(name=project_name).first()
+    if project is None:
+        return False
+    judge = get_judge(email)
+    return judge in project.judges

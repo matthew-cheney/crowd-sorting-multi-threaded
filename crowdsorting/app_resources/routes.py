@@ -4,7 +4,8 @@ import pickle
 from crowdsorting import app, cookie_crypter, pairselector_options
 from crowdsorting.app_resources import StringList, DBProxy, ProjectHandler, \
     JudgeHandler
-from crowdsorting.app_resources.route_decorators import login_required, admin_required
+from crowdsorting.app_resources.route_decorators import login_required, \
+    admin_required, valid_current_project
 from crowdsorting.database.models import Judge
 from crowdsorting.settings.configurables import PICKLES_PATH
 
@@ -28,8 +29,6 @@ def get_email_from_request():
     email = cookie_crypter.decrypt({'email': encrypted_email})['email']
     return email
 
-
-@app.route('/', methods=['GET'])
 @app.route('/home', methods=['GET'])
 def home():
     return render_template('home.html')
@@ -38,6 +37,16 @@ def home():
 def about():
     return render_template('about.html')
 
+@app.route('/instructions', methods=['GET'])
+@login_required
+@valid_current_project
+def instructions():
+    project_name = request.cookies.get('current_project')
+    project = DBProxy.get_project(project_name=project_name)
+    return render_template('instructions.html',
+                           landing_page=project.landing_page)
+
+@app.route('/', methods=['GET'])
 @app.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
@@ -51,7 +60,12 @@ def dashboard():
                                public_projects=public_projects,
                                selector_algorithms=pairselector_options,
                                )
-    return render_template('userdashboard.html')
+    # Not admin, render user dashboard
+    judge = DBProxy.get_judge(request.cookies.get('email'))
+    all_public_projects = DBProxy.get_all_public_projects()
+    filtered_public_projects = [p for p in all_public_projects if judge not in p.judges]
+    return render_template('userdashboard.html',
+                           filtered_public_projects=filtered_public_projects)
 
 @app.route('/sorter', methods=['GET'])
 @login_required
@@ -148,3 +162,36 @@ def delete_user():
     judge_id = request.form.get('user_id')
     JudgeHandler.delete_judge(judge_id)
     return redirect(url_for('dashboard'))
+
+@app.route('/addpublicproject', methods=['POST'])
+@login_required
+def add_public_project():
+    project_name = request.form.get('project_name')
+    email = get_email_from_request()
+    DBProxy.add_user_to_project(email, project_name=project_name)
+    return redirect(url_for('dashboard'))
+
+@app.route('/joincode', methods=['POST'])
+@login_required
+def join_code():
+    project_name = request.form.get('project_name')
+    join_code = request.form.get('join_code')
+    if not DBProxy.verify_join_code(project_name, join_code):
+        flash('invalid project name or join code', 'warning')
+        return redirect(url_for('dashboard'))
+    email = get_email_from_request()
+    DBProxy.add_user_to_project(email, project_name=project_name)
+    flash(f'added project {project_name}', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/selectproject', methods=['POST'])
+@login_required
+def select_project():
+    project_name = request.form.get('project_name')
+    email = get_email_from_request()
+    if not DBProxy.verify_user_in_project(email, project_name=project_name):
+        flash(f'unable to select project {project_name}', 'warning')
+        return redirect(url_for('dashboard'))
+    res = redirect(url_for('instructions'))
+    res.set_cookie('current_project', project_name)
+    return res

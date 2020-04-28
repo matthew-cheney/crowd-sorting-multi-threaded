@@ -243,7 +243,9 @@ def returninguser(email):
 def postLoadUser(email, cid):
     # Set user admin if needed
     if is_in_admin_file(email):
-        DBProxy.set_user_as_admin(email)
+        DBProxy.set_user_as_admin(email, True)
+    else:
+        DBProxy.set_user_as_admin(email, False)
 
     cookies = {
         'email': email,

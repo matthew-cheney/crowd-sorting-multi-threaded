@@ -33,8 +33,11 @@
   <div class="col-lg-12 text-center">
     <h2>{{ project.name }}</h2>
     <p>{{ project.description }}</p>
-    <button class="btn btn-primary btn-lg" id="{{ project.name }}_select_button" onclick="set_current_project_user('{{ project.name }}')" style="margin-right: 7px;">{{ StringList.select_button }}</button>
-    <button class="btn btn-danger btn-lg" id="{{ project.name }}_leave_button" onclick="confirm_leave('{{ project.name }}')" style="margin-left: 7px">{{ StringList.leave_button }}</button>
+      <form action="selectproject" method="POST">
+          <input type="hidden" name="project_name" value="{{ project.name }}">
+          <button class="btn btn-primary btn-lg" id="{{ project.name }}_select_button" style="margin-right: 7px;">{{ StringList.select_button }}</button>
+          <button class="btn btn-danger btn-lg" id="{{ project.name }}_leave_button" type="button" onclick="confirm_leave('{{ project.name }}')" style="margin-left: 7px">{{ StringList.leave_button }}</button>
+      </form>
     <hr/>
   </div>
 </div>
@@ -90,7 +93,10 @@
                   <div class="col-lg-12 text-center">
                       <h2>{{ pproject.name }}</h2>
                     <p>{{ pproject.description }}</p>
-                    <button class="btn btn-primary btn-lg" onclick="set_current_project_user_public('{{ pproject.name }}')">{{ StringList.join_button }}</button>
+                      <form action="addpublicproject" method="POST">
+                          <input type="hidden" name="project_name" value="{{ pproject.name }}">
+                          <button type="submit" class="btn btn-primary btn-lg">{{ StringList.join_button }}</button>
+                      </form>
                     <hr/>
                   </div>
                 </div>
@@ -137,21 +143,7 @@
           }
       }
 
-      function set_current_project_user_public(project_name) {
 
-          json_dict = {
-                    user_email: '{{ judge.email }}',
-                    project_name: project_name
-                    };
-
-          var http = new XMLHttpRequest();
-          http.open("POST", "addpublicproject", true);
-          http.setRequestHeader("Content-type","application/json");
-          http.send(JSON.stringify(json_dict));
-          http.onload = function() {
-              location.reload();
-          }
-      }
 
       function confirm_leave(project_name) {
         document.getElementById('leave_model_project_name').value = project_name
