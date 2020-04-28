@@ -14,7 +14,8 @@ dummy_judge = Judge(id=None, firstName='', lastName='', email='', projects=[], c
 @app.context_processor
 def utility_processor():
     return {'judge': get_judge(),
-            'StringList': StringList}
+            'StringList': StringList,
+            'current_project': get_current_project()}
 
 def get_judge():
     judge = DBProxy.get_judge(get_email_from_request())
@@ -28,6 +29,10 @@ def get_email_from_request():
         return None
     email = cookie_crypter.decrypt({'email': encrypted_email})['email']
     return email
+
+def get_current_project():
+    project = request.cookies.get('current_project', False)
+    return project
 
 @app.route('/home', methods=['GET'])
 def home():
@@ -192,6 +197,10 @@ def select_project():
     if not DBProxy.verify_user_in_project(email, project_name=project_name):
         flash(f'unable to select project {project_name}', 'warning')
         return redirect(url_for('dashboard'))
-    res = redirect(url_for('instructions'))
+    return_page = request.form.get('return_page', False)
+    if return_page:
+        res = redirect(return_page)
+    else:
+        res = redirect(url_for('instructions'))
     res.set_cookie('current_project', project_name)
     return res

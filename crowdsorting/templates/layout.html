@@ -36,16 +36,19 @@
     <header class="site-header" id="header_bar">
       <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand mr-4" href="{{ url_for('home') }}">Crowd Sorting</a>
+          <a class="navbar-brand mr-4" href="{{ url_for('about') }}" data-toggle="tooltip" title="about Crowd Sorting">Crowd Sorting</a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
-              <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
-              <a class="nav-item nav-link" href="{{ url_for('about') }}">About</a>
               {% if judge.id != None %}
+              <a class="nav-item nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+              <a class="nav-item nav-link" id="layout_instruction_link" href="{{ url_for('instructions') }}">Instructions</a>
               <a class="nav-item nav-link" id="layout_sorter_link" href="{{ url_for('sorter') }}">Sorter</a>
+              {% else %}
+              <a class="nav-item nav-link" id="layout_home_link" href="{{ url_for('home') }}">Home</a>
+              <a class="nav-item nav-link" id="layout_about_link" href="{{ url_for('about') }}">About</a>
               {% endif %}
               {% if judge.is_admin %}
               <a class="nav-item nav-link" href="{{ url_for('tower') }}">Control Tower</a>
@@ -57,14 +60,18 @@
             {% if judge.id != None %}
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown_project" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <span id="displayed_project">current project</span>
+                  <span id="displayed_project">{% if current_project %}{{ current_project }}{% else %}select project{% endif %}</span>
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   {% if judge.projects|length == 0 %}
                     <div class="dropdown-item disabled" disabled>no projects</div>
                   {% else %}
                   {% for proj in judge.projects %}
-                    <a class="dropdown-item" href="#" onclick="set_current_project('{{ proj.name }}')">{{ proj.name }}</a>
+                  <form action="selectproject" method="POST">
+                    <input type="hidden" name="project_name" value="{{ proj.name }}">
+                    <input type="hidden" name="return_page" value="{{ url_for(request.endpoint) }}">
+                  <a class="dropdown-item" href="#" onclick="this.closest('form').submit();return false;">{{ proj.name }}</a>
+                  </form>
                   {% endfor %}
                   {% endif %}
                 </div>

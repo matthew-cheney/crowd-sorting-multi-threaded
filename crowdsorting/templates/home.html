@@ -1,27 +1,14 @@
 {% extends "layout.html" %}
 
 {% block content %}
-{% if 'user' in session and is_authenticated %}
-{% if landing_page != False %}
-    {{ landing_page|safe }}
-    <div class="row">
-        <div class="col-lg-12 text-center">
-    <a class="nav-item nav-link" id="layout_sorter_link" href="{{ url_for('sorter') }}"><button type="button" class="btn btn-lg btn-primary">Begin Sorting</button></a>
-            <br/><br/>
-        </div>
-    </div>
-{% else %}
-<h1 class="text-center">Welcome {{ first_name }}!</h1>
 
-  is_authenticated: {{ is_authenticated }}</br>
-  is_admin: {{ is_admin }}</br>
-  current_project: {{ current_project }}
-{% endif %}
+{% if judge.id != None %}
+<meta http-equiv="refresh"
+   content="0; dashboard">
 {% else %}
 <div class="home_div">
     <h1 class="text-center">Welcome to CrowdSorting!</h1>
     <h2 class="text-center">To use this app, please log in at the upper right corner.</h2>
 </div>
 {% endif %}
-
 {% endblock content %}
