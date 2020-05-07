@@ -120,7 +120,8 @@ def sorter():
                            time_started=floor(time.time()),
                            timeout=120*1000,
                            file_one=file_one_contents,
-                           file_two=file_two_contents
+                           file_two=file_two_contents,
+                           admin=False
                            )
 
 @app.route('/sorted', methods=['GET'])

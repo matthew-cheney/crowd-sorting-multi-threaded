@@ -69,7 +69,6 @@
     <div class="col-lg-6">
         <form id="safe_exit_form" method="POST" action="safeexit">
             <input type="hidden" value="{{ pair_id }}" name="pair_id">
-            <input type="hidden" value="{{ pair_submission_key }}" name="pair_submission_key">
             <div class="row">
                 <div class="col-md-12 text-left">
                     <button type="button" class="btn btn-danger btn-lg" onclick="show_safe_exit_modal()">{% if admin %}Return to Tower{% else %}Exit Without Submitting{% endif %}</button>
@@ -86,7 +85,6 @@
     <div class="col-lg-6">
         <form id="hard_easy_form" method="POST" action="hardeasy">
             <input type="hidden" value="{{ pair_id }}" name="pair_id">
-            <input type="hidden" value="{{ pair_submission_key }}" name="pair_submission_key">
             <div class="row">
                 <div class="col-md-12 text-right">
                     <button type="button" class="btn btn-lg btn-warning text-white" onclick="show_hard_easy_modal()">Too Hard</button>
@@ -105,11 +103,10 @@
 <form id="submit_answer_form" method="POST" action="submitAnswer">
     <input type="hidden" value="{{ admin }}" name="admin">
     <input type="hidden" value="{{ pair_id }}" name="pair_id">
-    <input type="hidden" value="{{ pair_submission_key }}" name="pair_submission_key">
-    <input type="hidden" value="{{ judge_email }}" name="judge_email">
+    <input type="hidden" value="{{ judge.email }}" name="judge_email">
     <div class="row">
         <div class="col-md-12 text-center">
-            <h3>{{ selection_prompt }}</h3>
+            <h3>{{ project.selection_prompt }}</h3>
             <input type="hidden" name="preferred" id="preferred_hidden" value="">
             <input type="hidden" name="time_started" value="{{ time_started }}">
         </div>
@@ -233,8 +230,8 @@
 
   function a_preferred() {
     document.getElementById("preferred_hidden").value = "{{ file_one_name }}"
-    document.getElementById("doc_a_header").innerHTML = "{{ preferred_prompt }}"
-    document.getElementById("doc_b_header").innerHTML = "{{ unpreferred_prompt }}"
+    document.getElementById("doc_a_header").innerHTML = "{{ project.preferred_prompt }}"
+    document.getElementById("doc_b_header").innerHTML = "{{ project.unpreferred_prompt }}"
     document.getElementById("doc_b_div").className = "card border-danger mb-3"
     document.getElementById("doc_b_header").className = "card-header bg-danger text-center sorter_header"
     document.getElementById("doc_a_div").className = "card border-success mb-3"
@@ -244,8 +241,8 @@
 
   function b_preferred() {
     document.getElementById("preferred_hidden").value = "{{ file_two_name }}"
-    document.getElementById("doc_b_header").innerHTML = "{{ preferred_prompt }}"
-    document.getElementById("doc_a_header").innerHTML = "{{ unpreferred_prompt }}"
+    document.getElementById("doc_b_header").innerHTML = "{{ project.preferred_prompt }}"
+    document.getElementById("doc_a_header").innerHTML = "{{ project.unpreferred_prompt }}"
     document.getElementById("doc_a_div").className = "card border-danger mb-3"
     document.getElementById("doc_a_header").className = "card-header bg-danger text-center sorter_header"
     document.getElementById("doc_b_div").className = "card border-success mb-3"
@@ -359,7 +356,7 @@
         document.getElementById("more_time_button").disabled=true
         json_dict = {
                     pair_id: '{{ pair_id }}',
-                    project_name: '{{ project_name }}'
+                    project_name: '{{ current_project }}'
                     };
 
           var http = new XMLHttpRequest();
