@@ -63,8 +63,12 @@ Also, User == Judge
 def testing_login(email, password=''):
     if not password == 'Ry9HReDwAVNabDZ50ixucWwaQxuOZMqcYvrWvDHxARWShZ62N0asuOAnok7lGj6I':
         return 'Nice try! Go use the normal login.'
-    return load_user(email)
+    return redirect(url_for('testing_login_redirect', email=email))
 
+@app.route('/testingloginredirect', methods=['GET'])
+def testing_login_redirect():
+    email = request.args.get('email')
+    return load_user(email)
 
 @app.route("/login")
 def login():

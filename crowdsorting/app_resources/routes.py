@@ -121,6 +121,9 @@ def accountinfo():
 def add_project():
     # Get data from form
     project_name = request.form.get('project_name')
+    if ' ' in project_name:
+        flash('project name may not contain spaces', 'warning')
+        return redirect(url_for('dashboard'))
     sorting_algorithm_name = request.form.get('selector_algorithm')
     public = (True if request.form.get('public') == 'on' else False)
     join_code = request.form.get('join_code')
