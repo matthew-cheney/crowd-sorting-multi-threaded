@@ -68,5 +68,9 @@ def delete_project(project_name):
 
 def update_project_info(name, description, selection_prompt, preferred_prompt,
                         unpreferred_prompt, consent_form, landing_page):
+    project = DBProxy.get_project(project_name=name)
+    if project is None:
+        return False
+    DBProxy.delete_all_consents_from_project(project_name=name)
     return DBProxy.update_project(name, description, selection_prompt, preferred_prompt,
                            unpreferred_prompt, consent_form, landing_page)

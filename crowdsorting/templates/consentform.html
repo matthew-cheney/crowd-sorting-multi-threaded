@@ -2,6 +2,11 @@
 
 {% block content %}
 <div class="row">
+    <div class="col-lg-12 text-right">
+        <a style="color: blue; cursor: pointer;" onclick="show_explanation_modal()">Why am I seeing this page?</a>
+    </div>
+</div>
+<div class="row">
     <div class="col-lg-12">
         {{ consent_form_text | safe }}
     </div>
@@ -19,4 +24,39 @@
     </div>
 </div>
 <br/><br/>
+
+
+<div id="page_explanation_modal" class="modal">
+  <div class="modal-content text-center">
+      <div class="row">
+          <div class="col-md-12 text-center">
+          <h3>Why am I seeing this page?</h3>
+              <hr>
+              <h4>In order to participate in this project, you must agree to the terms and conditions.</h4>
+              <hr>
+              <h4>If you have previously agreed to these terms and conditions and were shown this page again, that project administrator has likely updated the project or its terms and conditions. To continue participating, you must agree to the terms and conditions again.</h4>
+              <hr>
+              <button class="btn btn-warning btn-lg" onclick="hide_explanation_modal()">Close</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+<script>
+  var page_explanation_modal = document.getElementById('page_explanation_modal')
+  function show_explanation_modal() {
+    page_explanation_modal.style.display = "block";
+  }
+
+  function hide_explanation_modal() {
+    page_explanation_modal.style.display = "none";
+  }
+
+  window.onclick = function(event) {
+    if (event.target == page_explanation_modal) {
+      page_explanation_modal.style.display = "none";
+    }
+  }
+</script>
+
     {% endblock content %}
