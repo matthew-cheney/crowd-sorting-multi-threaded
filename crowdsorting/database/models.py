@@ -48,7 +48,7 @@ class Project(db.Model):
     __bind_key__ = 'admin_data'
     __tablename__ = 'project'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(PROJECT_NAME_LENGTH), nullable=False)
+    name = db.Column(db.String(PROJECT_NAME_LENGTH), nullable=False, unique=True)
     sorting_algorithm_id = db.Column(db.Integer, nullable=True)
     # path_to_sorting_algorithm = db.Column(db.String(512), default='')
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -105,6 +105,18 @@ class Judge(db.Model):
 
     def __repr__(self):
         return f"\nJudge('{self.firstName} {self.lastName}', '{self.email}', '{self.email}', '{self.cid}')"
+
+
+class Consent(db.Model):
+    __bind_key__ = 'admin_data'
+    __tablename__ = 'consent'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(EMAIL_LENGTH))
+    project_name = db.Column(db.String(PROJECT_NAME_LENGTH))
+    active = db.Column(db.Boolean, default=True)
+
+    def __repr__(self):
+        return f'email: {self.email}; project: {self.project_name}; active: {self.active}'
 
 
 """class Judgment(db.Model):

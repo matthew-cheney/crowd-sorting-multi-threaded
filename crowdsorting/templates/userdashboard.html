@@ -59,7 +59,9 @@
           <h3>Are you sure you want to leave <span id="leave_project_name_prompt">this project</span>?</h3>
           <button class="btn btn-danger btn-lg" onclick="remove_self_from_project()" style="margin-right: 7px;">Leave</button>
           <button class="btn btn-warning btn-lg" onclick="hide_leave_modal()" style="margin-left: 7px;">Cancel</button>
-          <input id="leave_model_project_name" value="" hidden>
+              <form id="leave_project_form" action="removeself" method="POST">
+                  <input id="leave_model_project_name" name="project_name" value="" hidden>
+              </form>
           </div>
       </div>
     </div>
@@ -157,19 +159,7 @@
       }
 
       function remove_self_from_project() {
-        project_name = document.getElementById('leave_model_project_name').value
-        json_dict = {
-                    user_email: '{{ judge.email }}',
-                    project_name: project_name
-                    };
-
-          var http = new XMLHttpRequest();
-          http.open("POST", "removeself", true);
-          http.setRequestHeader("Content-type","application/json");
-          http.send(JSON.stringify(json_dict));
-          http.onload = function() {
-              location.reload();
-          }
+        document.getElementById('leave_project_form').submit()
       }
 
 </script>

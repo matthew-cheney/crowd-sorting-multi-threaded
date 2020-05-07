@@ -75,12 +75,36 @@ def dashboard():
     return render_template('userdashboard.html',
                            filtered_public_projects=filtered_public_projects)
 
+
+@app.route('/consentform', methods=['GET'])
+@login_required
+def consent_form():
+    project_name = request.cookies.get('current_project')
+    project = DBProxy.get_project(project_name=project_name)
+    return render_template('consentform.html',
+                           consent_form_text=project.consent_form,
+                           admin=False)
+
+@app.route('/signconsent', methods=['POST'])
+@login_required
+def sign_consent():
+    email = get_email_from_request()
+    project_name = request.form.get('project_name')
+    admin = request.form.get('admin')
+    DBProxy.sign_consent_form(email, project_name)
+    if admin == 'True':
+        return redirect(url_for('tower'))
+    return redirect(url_for('sorter'))
+
+
 @app.route('/sorter', methods=['GET'])
 @login_required
 @valid_current_project
 def sorter():
     email = get_email_from_request()
     project_name = request.cookies.get('current_project')
+    if not DBProxy.user_has_signed_consent(email, project_name):
+        return redirect(url_for('consent_form'))
     project = DBProxy.get_project(project_name=project_name)
     pair = PairSelector.get_pair(project_name, email)
     if type(pair) == str:
@@ -228,4 +252,17 @@ def select_project():
     else:
         res = redirect(url_for('instructions'))
     res.set_cookie('current_project', project_name)
+    return res
+
+@app.route('/removeself', methods=['POST'])
+@login_required
+def remove_self():
+    email = get_email_from_request()
+    project_name = request.form.get('project_name')
+    print(f'remove {email} from {project_name}')
+    DBProxy.remove_user_from_project(email, project_name=project_name)
+    current_project = get_current_project()
+    res = redirect(url_for('dashboard'))
+    if project_name == current_project:
+        res.set_cookie('current_project', '', max_age=0)
     return res

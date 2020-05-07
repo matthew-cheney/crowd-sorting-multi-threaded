@@ -3,7 +3,7 @@ import uuid
 
 from crowdsorting import db
 from crowdsorting.database.models import Judge, Project, Doc, SortingProxy, \
-    DocPair, DocPairReject
+    DocPair, DocPairReject, Consent
 from crowdsorting.settings.configurables import *
 
 def is_user_exists(email):
@@ -47,6 +47,21 @@ def add_user_to_project(email, project_id=None, project_name=None):
     if judge in project.judges:
         return
     project.judges.append(judge)
+    db.session.commit()
+
+def remove_user_from_project(email, project_id=None, project_name=None):
+    if project_id is not None:
+        project = db.session.query(Project).filter_by(id=project_id).first()
+    else:
+        project = db.session.query(Project).filter_by(name=project_name).first()
+    if project is None:
+        return
+    judge = db.session.query(Judge).filter_by(email=email).first()
+    if judge is None:
+        return
+    if judge not in project.judges:
+        return
+    project.judges.remove(judge)
     db.session.commit()
 
 def verify_login(email, cid):
@@ -171,6 +186,8 @@ def delete_doc_pairs(project_id):
     db.session.commit()
 
 def delete_project(project_id):
+    project = db.session.query(Project).filter_by(id=project_id).first()
+    delete_all_consents_from_project(project.name)
     db.session.query(Project).filter_by(id=project_id).delete()
     db.session.commit()
 
@@ -254,3 +271,18 @@ def get_doc_contents(doc_id):
     if doc is None:
         return ''
     return doc.contents
+
+
+def sign_consent_form(email, project_name):
+    db.session.add(Consent(email=email, project_name=project_name))
+    db.session.commit()
+
+
+def user_has_signed_consent(email, project_name):
+    consent = db.session.query(Consent).filter_by(email=email, project_name=project_name, active=True).first()
+    return (consent is not None)
+
+
+def delete_all_consents_from_project(project_name):
+    db.session.query(Consent).filter_by(project_name=project_name).delete()
+    db.session.commit()
