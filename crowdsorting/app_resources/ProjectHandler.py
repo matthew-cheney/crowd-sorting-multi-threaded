@@ -35,18 +35,24 @@ def create_project(name, sorting_algorithm_name, public, join_code, description,
     project_proxy = target_algorithm(name)
     project_proxy.initialize_selector(file_ids)
 
+    # Fill docpairs table in database
+    PairSelector.turn_over_round(project_proxy)
+    print(f'populating docpairs with: {project_proxy.roundList}')
+    PairSelector.populate_doc_pairs(project_proxy)
+
     # Insert proxy into database
     proxy_id = DBProxy.add_proxy(project_proxy, name)
-
-    # Fill docpairs table in database
-    PairSelector.turn_over_round(project_proxy, proxy_id)
-    PairSelector.populate_doc_pairs(project_proxy)
+    print(f'new proxy roundList: {project_proxy.roundList}')
 
     # Update project in database with new info
     DBProxy.add_num_docs_to_project(project_id, len(file_ids))
     DBProxy.add_sorting_algorithm_id_to_project(project_id, proxy_id)
 
     f'added project {name} with {len(file_ids)} docs'
+
+    test_proxy = DBProxy.get_proxy(proxy_id, database_model=False)
+    print(f'new proxy from db: {test_proxy.roundList}')
+
     return '', ''
 
 def delete_project(project_name):
@@ -79,7 +85,9 @@ def update_project_info(name, description, selection_prompt, preferred_prompt,
 def start_new_round(project_name):
     proxy_id = DBProxy.get_sorting_proxy_id(project_name)
     proxy = DBProxy.get_proxy(proxy_id)
+    print(f'old round: {proxy.roundList}')
     PairSelector.process_doc_pairs(proxy, proxy_id)
-    PairSelector.turn_over_round(proxy, proxy_id)
+    PairSelector.turn_over_round(proxy)
     PairSelector.populate_doc_pairs(proxy)
     DBProxy.update_proxy(proxy_id, proxy=proxy)
+    print(f'new round: {proxy.roundList}')

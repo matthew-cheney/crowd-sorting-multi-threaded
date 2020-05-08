@@ -213,6 +213,7 @@ class UniACJ(object):
     def nextRound(self, extRoundList=None):
         '''Returns next round of pairs'''
         # print(f"Round: {self.round}")
+        print(f'acj: starting new round')
         self.round = self.round + 1
         self.step = 0
         if self.round > self.maxRounds:
@@ -266,10 +267,13 @@ class UniACJ(object):
                 else:
                     return -1
             else:
+                print('one or more pairs not returned yet')
                 o = [p for p in self.roundList if
                      not self.returned[self.roundList.index(p)]]
+                self.roundList = o[:]
                 return random.choice(o)
         self.unservedRoundList[self.step] = None
+        # print(f'step={self.step}')
         return self.roundList[self.step]
 
     def nextIDPair(self, startNext=True):
@@ -519,6 +523,8 @@ class UniACJ(object):
             result = not result
         if pair in self.roundList:
             self.returned[self.roundList.index(pair)] = True
+        else:
+            print(f'{pair} not in acj roundList')
         a = pair[0]
         b = pair[1]
         if update == None:

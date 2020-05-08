@@ -191,14 +191,11 @@ def get_project_id(name):
 
 def delete_sorting_proxy(sorting_proxy_id=None, project_name=None):
     if sorting_proxy_id is not None:
-        proxy = db.session.query(SortingProxy).filter_by(id=sorting_proxy_id).first()
+        db.session.query(SortingProxy).filter_by(id=sorting_proxy_id).delete()
     elif project_name is not None:
-        proxy = db.session.query(SortingProxy).filter_by(project_name=project_name).first()
+        db.session.query(SortingProxy).filter_by(project_name=project_name).delete()
     else:
         return
-    if proxy is None:
-        return
-    del(proxy)
     db.session.commit()
 
 def delete_doc_pairs(project_id):
@@ -229,6 +226,7 @@ def delete_doc_pair_rejects(project_name):
 def delete_project(project_id):
     project = db.session.query(Project).filter_by(id=project_id).first()
     project.judges = []
+    delete_sorting_proxy(project_name=project.name)
     delete_all_consents_from_project(project.name)
     delete_docs(project_id)
     delete_all_doc_pairs(project.name)

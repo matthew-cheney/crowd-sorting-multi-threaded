@@ -167,6 +167,9 @@ class DocPair(db.Model):
     times_rejected = db.Column(db.Integer, default=0)
     expiration_time = db.Column(db.Integer, nullable=False)
 
+    def __repr__(self):
+        return f'doc1_id={self.doc1_id}; doc2_id={self.doc2_id}'
+
 class DocPairReject(db.Model):
     __bind_key__ = 'sorting_algorithms'
     __tablename__ = 'doc_pair_rejects'
@@ -198,7 +201,7 @@ class SortingProxy(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_name = db.Column(db.String(PROJECT_NAME_LENGTH), nullable=False)
     proxy = db.Column(db.LargeBinary, nullable=True)
-    comparisons = db.relationship('Comparison', back_populates='sorting_proxy')
+    comparisons = db.relationship('Comparison', back_populates='sorting_proxy', cascade='delete')
 
 
 """class Vote(db.Model):

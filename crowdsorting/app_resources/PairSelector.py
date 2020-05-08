@@ -15,6 +15,7 @@ def process_doc_pairs(proxy, proxy_id):
         return 'not all pairs have been judged yet'
     # Submit all comparisons to proxy
     for pair in all_pairs:
+        print(f'sending comparison for {pair}')
         if pair.doc1_id == pair.preferred_id:
             proxy.make_comparison(pair.doc1_id, pair.doc2_id)
         elif pair.doc2_id == pair.preferred_id:
@@ -25,7 +26,7 @@ def process_doc_pairs(proxy, proxy_id):
     DBProxy.delete_doc_pairs(project_id)
 
 
-def turn_over_round(proxy, proxy_id):
+def turn_over_round(proxy):
     logging.info('in turn_over_round')
     proxy.new_round()
     # DBProxy.update_proxy(proxy_id, proxy=proxy)

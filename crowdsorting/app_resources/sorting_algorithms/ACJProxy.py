@@ -108,8 +108,12 @@ class ACJProxy:
         self.acj.comp([preferred_id, unpreferred_id], True)
 
     def new_round(self):
+        print(f'tring to start new round')
+        self.acj.step = len(self.acj.roundList)
         self.acj.nextPair()
+        print(f'old ACJProxy roundList: {self.roundList}')
         self.roundList = self.acj.roundList[:]
+        print(f'new ACJProxy roundList: {self.roundList}')
 
     def make_judgment(self, pair_id, easier_doc_name, harder_doc_name, duration,
                       judge_name='Unknown'):
