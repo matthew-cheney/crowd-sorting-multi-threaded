@@ -231,6 +231,7 @@ def delete_project(project_id):
     delete_docs(project_id)
     delete_all_doc_pairs(project.name)
     delete_doc_pair_rejects(project.name)
+    delete_comparisons(project.name)
     db.session.query(Project).filter_by(id=project_id).delete()
     db.session.commit()
 
@@ -382,3 +383,18 @@ def get_doc_name(doc_id):
     if doc is None:
         return False
     return doc.name
+
+
+def return_pair(pair_id):
+    pair = db.session.query(DocPair).filter_by(id=pair_id).first()
+    if pair is None:
+        return
+    pair.checked_out = False
+    db.session.commit()
+
+
+def add_doc_pair_reject(judge_id, project_name, doc1_id, doc2_id, doc_pair_id):
+    db.session.add(DocPairReject(
+        judge_id=judge_id, project_name=project_name,
+        doc1_id=doc1_id, doc2_id=doc2_id, doc_pair_id=doc_pair_id))
+    db.session.commit()

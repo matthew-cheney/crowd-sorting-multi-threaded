@@ -178,6 +178,7 @@ class DocPairReject(db.Model):
     project_name = db.Column(db.String(PROJECT_NAME_LENGTH), nullable=False)
     doc1_id = db.Column(db.Integer)
     doc2_id = db.Column(db.Integer)
+    doc_pair_id = db.Column(db.Integer)
     date_rejected = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 

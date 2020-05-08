@@ -161,6 +161,31 @@ def submit_answer():
         return redirect(url_for('sorter'))
 
 
+@app.route('/safeexit', methods=['POST'])
+@login_required
+def safe_exit():
+    pair_id = request.form.get('pair_id')
+    DBProxy.return_pair(pair_id)
+    return redirect(url_for('instructions'))
+
+
+@app.route('/hardeasy', methods=['POST'])
+@login_required
+def hard_easy():
+    email = get_email_from_request()
+    project = get_current_project()
+    doc1_id = request.form.get('file_one_id')
+    doc2_id = request.form.get('file_two_id')
+    pair_id = request.form.get('pair_id')
+    DBProxy.add_doc_pair_reject(judge_id=DBProxy.get_judge_id(email),
+                                project_name=project,
+                                doc1_id=doc1_id,
+                                doc2_id=doc2_id,
+                                doc_pair_id=pair_id)
+    DBProxy.return_pair(pair_id)
+    return redirect(url_for('sorter'))
+
+
 @app.route('/sorted', methods=['GET'])
 @login_required
 @admin_required
