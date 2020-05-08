@@ -35,12 +35,12 @@ def create_project(name, sorting_algorithm_name, public, join_code, description,
     project_proxy = target_algorithm(name)
     project_proxy.initialize_selector(file_ids)
 
-    # Fill docpairs table in database
-    PairSelector.turn_over_round(project_proxy)
-    PairSelector.populate_doc_pairs(project_proxy)
-
     # Insert proxy into database
     proxy_id = DBProxy.add_proxy(project_proxy, name)
+
+    # Fill docpairs table in database
+    PairSelector.turn_over_round(project_proxy, proxy_id)
+    PairSelector.populate_doc_pairs(project_proxy)
 
     # Update project in database with new info
     DBProxy.add_num_docs_to_project(project_id, len(file_ids))
@@ -74,3 +74,12 @@ def update_project_info(name, description, selection_prompt, preferred_prompt,
     DBProxy.delete_all_consents_from_project(project_name=name)
     return DBProxy.update_project(name, description, selection_prompt, preferred_prompt,
                            unpreferred_prompt, consent_form, landing_page)
+
+
+def start_new_round(project_name):
+    proxy_id = DBProxy.get_sorting_proxy_id(project_name)
+    proxy = DBProxy.get_proxy(proxy_id)
+    PairSelector.process_doc_pairs(proxy, proxy_id)
+    PairSelector.turn_over_round(proxy, proxy_id)
+    PairSelector.populate_doc_pairs(proxy)
+    DBProxy.update_proxy(proxy_id, proxy=proxy)

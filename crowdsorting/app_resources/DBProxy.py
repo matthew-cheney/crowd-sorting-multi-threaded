@@ -1,9 +1,12 @@
 import pickle
+import random
+import time
 import uuid
 
 from crowdsorting import db
+from crowdsorting.app_resources.CustomExceptions import DocNotInDatabase
 from crowdsorting.database.models import Judge, Project, Doc, SortingProxy, \
-    DocPair, DocPairReject, Consent
+    DocPair, DocPairReject, Consent, Comparison
 from crowdsorting.settings.configurables import *
 
 def is_user_exists(email):
@@ -79,6 +82,12 @@ def check_admin(email):
 def get_judge(email):
     return db.session.query(Judge).filter_by(email=email).first()
 
+def get_judge_id(email):
+    judge = db.session.query(Judge).filter_by(email=email).first()
+    if judge is None:
+        return False
+    return judge.id
+
 def get_all_judges():
     return db.session.query(Judge).all()
 
@@ -150,18 +159,29 @@ def add_sorting_algorithm_id_to_project(project_id, proxy_id):
     return True
 
 def add_proxy(proxy, project_name):
-    proxy_btyes = pickle.dumps(proxy)
-    db.session.add(SortingProxy(project_name=project_name, proxy=proxy_btyes))
+    proxy_bytes = pickle.dumps(proxy)
+    db.session.add(SortingProxy(project_name=project_name, proxy=proxy_bytes))
     db.session.commit()
 
     proxy_found = db.session.query(SortingProxy).filter_by(project_name=project_name).first()
     return proxy_found.id
 
-def get_proxy(proxy_id):
+def get_proxy(proxy_id, database_model=False):
     proxy = db.session.query(SortingProxy).filter_by(id=proxy_id).first()
     if proxy is None:
         return False
-    return proxy
+    if database_model:
+        return proxy
+    return pickle.loads(proxy.proxy)
+
+def update_proxy(proxy_id, project_name=None, proxy=None):
+    db_proxy = db.session.query(SortingProxy).filter_by(id=proxy_id).first()
+    if project_name is not None:
+        db_proxy.project_name = project_name
+    if proxy is not None:
+        db_proxy.proxy = pickle.dumps(proxy)
+    db.session.commit()
+
 
 def get_project_id(name):
     project = db.session.query(Project).filter_by(name=name).first()
@@ -182,12 +202,37 @@ def delete_sorting_proxy(sorting_proxy_id=None, project_name=None):
     db.session.commit()
 
 def delete_doc_pairs(project_id):
+    db.session.query(DocPair).filter_by(project_id=project_id,
+                                        complete=True).delete()
+    db.session.commit()
+
+def delete_all_doc_pairs(project_name):
+    project_id = get_project_id(project_name)
     db.session.query(DocPair).filter_by(project_id=project_id).delete()
+    db.session.commit()
+
+
+def delete_docs(project_id):
+    db.session.query(Doc).filter_by(project_id=project_id).delete()
+    db.session.commit()
+
+
+def delete_comparisons(project_name):
+    db.session.query(Comparison).filter_by(project_name=project_name).delete()
+    db.session.commit()
+
+
+def delete_doc_pair_rejects(project_name):
+    db.session.query(DocPairReject).filter_by(project_name=project_name).delete()
     db.session.commit()
 
 def delete_project(project_id):
     project = db.session.query(Project).filter_by(id=project_id).first()
+    project.judges = []
     delete_all_consents_from_project(project.name)
+    delete_docs(project_id)
+    delete_all_doc_pairs(project.name)
+    delete_doc_pair_rejects(project.name)
     db.session.query(Project).filter_by(id=project_id).delete()
     db.session.commit()
 
@@ -235,20 +280,24 @@ def verify_user_in_project(email, project_name):
 def get_pair(project_name, email):
     project = db.session.query(Project).filter_by(name=project_name).first()
     if project is None:
-        return 'project not found'
+        return 'project not found', 3
     project_id = project.id
-    pairs = db.session.query(DocPair).filter_by(project_id=project_id, complete=False, checked_out=False).all()
+    pairs = db.session.query(DocPair).filter_by(project_id=project_id, complete=False).all()
     if len(pairs) == 0:
-        return 'no pairs available'
+        return 'no pairs available', 2
     judge = db.session.query(Judge).filter_by(email=email).first()
     if judge is None:
-        return 'judge not found'
+        return 'judge not found', 4
     pair_rejects = db.session.query(DocPairReject).filter_by(judge_id=judge.id).all()
     pair_rejects = [x.doc_pair_id for x in pair_rejects]
+    random.shuffle(pairs)
     for pair in pairs:
-        if pair.id not in pair_rejects:
-            return pair
-    return 'no pair available for user'
+        if pair.id not in pair_rejects and (not pair.checked_out or pair.expiration_time < time.time()):
+            pair.checked_out = True
+            pair.expiration_time = time.time() + PAIR_LIFE_SECONDS
+            db.session.commit()
+            return pair, 0
+    return 'no pair available for user', 1
 
 
 def add_doc_pairs(project_id, id_pairs):
@@ -257,12 +306,19 @@ def add_doc_pairs(project_id, id_pairs):
         doc2_id = int(pair[1])
         db.session.add(DocPair(project_id=project_id,
                                doc1_id=doc1_id,
-                               doc2_id=doc2_id))
+                               doc2_id=doc2_id,
+                               expiration_time=time.time()))
     db.session.commit()
 
 
-def get_doc_pairs(project_id):
-    pairs = db.session.query(DocPair).filter_by(project_id=project_id).all()
+def get_doc_pairs(project_name):
+    pairs = db.session.query(DocPair).filter_by(project_name=project_name).all()
+    return pairs
+
+
+def get_completed_doc_pairs(project_id):
+    pairs = db.session.query(DocPair).filter_by(project_id=project_id,
+                                                complete=True).all()
     return pairs
 
 
@@ -286,3 +342,45 @@ def user_has_signed_consent(email, project_name):
 def delete_all_consents_from_project(project_name):
     db.session.query(Consent).filter_by(project_name=project_name).delete()
     db.session.commit()
+
+
+def submit_doc_pair(pair_id, preferred_doc_id):
+    pair = db.session.query(DocPair).filter_by(id=pair_id).first()
+    if pair is None:
+        return False
+    if pair.complete:
+        return False
+    preferred_doc = db.session.query(Doc).filter_by(id=preferred_doc_id).first()
+    if preferred_doc is None:
+        raise(DocNotInDatabase(f'{preferred_doc_id} not found'))
+    pair.preferred_id = preferred_doc.id
+    pair.checked_out = False
+    pair.complete = True
+    db.session.commit()
+    return True
+
+
+def make_comparison(judge_id, preferred_doc_name, unpreferred_doc_name,
+                    duration, project_name, sorting_proxy_id, used_in_sorting):
+    db.session.add(Comparison(judge_id=judge_id,
+                              preferred_doc_name=preferred_doc_name,
+                              unpreferred_doc_name=unpreferred_doc_name,
+                              duration_seconds=duration,
+                              used_in_sorting=used_in_sorting,
+                              project_name=project_name,
+                              sorting_proxy_id=sorting_proxy_id))
+    db.session.commit()
+
+
+def get_sorting_proxy_id(project_name):
+    proxy = db.session.query(SortingProxy).filter_by(project_name=project_name).first()
+    if proxy is None:
+        return False
+    return proxy.id
+
+
+def get_doc_name(doc_id):
+    doc = db.session.query(Doc).filter_by(id=doc_id).first()
+    if doc is None:
+        return False
+    return doc.name

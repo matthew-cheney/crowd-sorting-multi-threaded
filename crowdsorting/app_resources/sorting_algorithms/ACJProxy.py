@@ -107,6 +107,10 @@ class ACJProxy:
     def make_comparison(self, preferred_id, unpreferred_id):
         self.acj.comp([preferred_id, unpreferred_id], True)
 
+    def new_round(self):
+        self.acj.nextPair()
+        self.roundList = self.acj.roundList[:]
+
     def make_judgment(self, pair_id, easier_doc_name, harder_doc_name, duration,
                       judge_name='Unknown'):
         try:

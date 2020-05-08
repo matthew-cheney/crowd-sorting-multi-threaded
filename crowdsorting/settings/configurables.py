@@ -7,6 +7,7 @@ COOKIE_KEY = 'ef47d20f9cd74832b6713b8597db06df'
 ADMIN_PATH = os.path.join(app.config['APP_ROOT'], 'settings/admins.txt')
 PICKLES_PATH = os.path.join(app.config['APP_ROOT'], 'pickles/sorting_algorithms')
 VALID_FILE_TYPES = ['txt']
+PAIR_LIFE_SECONDS = 120
 
 DEFAULT_SELECTION_PROMPT = "Select the easier text"
 DEFAULT_PREFERRED_PROMPT = "Easier"

@@ -106,16 +106,25 @@ def sorter():
     if not DBProxy.user_has_signed_consent(email, project_name):
         return redirect(url_for('consent_form'))
     project = DBProxy.get_project(project_name=project_name)
-    pair = PairSelector.get_pair(project_name, email)
-    if type(pair) == str:
+    pair, success_code = PairSelector.get_pair(project_name, email)
+    if success_code == 1:
         flash('no pair currently available', 'warning')
         return render_template('instructions.html')
+    if success_code == 2:
+        ProjectHandler.start_new_round(project_name)
+        return redirect(url_for('sorter'))
+    if success_code == 3:
+        flash('project not found', 'warning')
+        return redirect(url_for('dashboard'))
+    if success_code == 4:
+        flash('user not found', 'warning')
+        return redirect(url_for('home'))
     file_one_contents = DBProxy.get_doc_contents(pair.doc1_id)
     file_two_contents = DBProxy.get_doc_contents(pair.doc2_id)
     return render_template('sorter.html',
                            pair_id=pair.id,
-                           file_one_name=pair.doc1_id,
-                           file_two_name=pair.doc2_id,
+                           file_one_id=pair.doc1_id,
+                           file_two_id=pair.doc2_id,
                            project=project,
                            time_started=floor(time.time()),
                            timeout=120*1000,
@@ -123,6 +132,34 @@ def sorter():
                            file_two=file_two_contents,
                            admin=False
                            )
+
+@app.route('/submitAnswer', methods=['POST'])
+@login_required
+def submit_answer():
+    pair_id = request.form.get('pair_id')
+    preferred_doc_id = request.form.get('preferred')
+    pair_submitted = DBProxy.submit_doc_pair(
+        pair_id=pair_id, preferred_doc_id=preferred_doc_id)
+    email = get_email_from_request()
+    judge_id = DBProxy.get_judge_id(email)
+    unpreferred_doc_id = request.form.get('unpreferred')
+    time_started = int(request.form.get('time_started'))
+    proxy_id = DBProxy.get_sorting_proxy_id(get_current_project())
+    preferred_doc_name = DBProxy.get_doc_name(preferred_doc_id)
+    unpreferred_doc_name = DBProxy.get_doc_name(unpreferred_doc_id)
+    DBProxy.make_comparison(
+        judge_id=judge_id, preferred_doc_name=preferred_doc_name,
+        unpreferred_doc_name=unpreferred_doc_name,
+        duration=floor(time.time()) - time_started, sorting_proxy_id=proxy_id,
+        used_in_sorting=pair_submitted, project_name=get_current_project())
+    if request.form.get('admin') == 'True':
+        return redirect(url_for('tower'))
+    if isinstance(request.form.get('another_pair_checkbox'), type(None)):
+        # flash('Judgment submitted', 'success')
+        return redirect(url_for('instructions'))
+    else:
+        return redirect(url_for('sorter'))
+
 
 @app.route('/sorted', methods=['GET'])
 @login_required

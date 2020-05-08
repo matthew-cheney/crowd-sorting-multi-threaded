@@ -165,13 +165,16 @@ class DocPair(db.Model):
     checked_out = db.Column(db.Boolean, default=False)
     complete = db.Column(db.Boolean, default=False)
     times_rejected = db.Column(db.Integer, default=0)
+    expiration_time = db.Column(db.Integer, nullable=False)
 
 class DocPairReject(db.Model):
-    __bind_key__ = 'doc_pairs'
+    __bind_key__ = 'sorting_algorithms'
     __tablename__ = 'doc_pair_rejects'
     id = db.Column(db.Integer, primary_key=True)
     judge_id = db.Column(db.Integer, nullable=False)
-    doc_pair_id = db.Column(db.Integer, nullable=False)
+    project_name = db.Column(db.String(PROJECT_NAME_LENGTH), nullable=False)
+    doc1_id = db.Column(db.Integer)
+    doc2_id = db.Column(db.Integer)
     date_rejected = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 
@@ -184,6 +187,8 @@ class Comparison(db.Model):
     unpreferred_doc_name = db.Column(db.String(DOC_NAME_LENGTH))
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     duration_seconds = db.Column(db.Integer)
+    used_in_sorting = db.Column(db.Boolean, default=True)
+    project_name = db.Column(db.String(PROJECT_NAME_LENGTH), nullable=False)
     sorting_proxy_id = db.Column(db.Integer, ForeignKey('sorting_proxy.id'))
     sorting_proxy = db.relationship('SortingProxy', back_populates='comparisons')
 
