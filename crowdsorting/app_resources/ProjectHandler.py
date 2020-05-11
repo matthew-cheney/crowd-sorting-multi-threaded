@@ -53,7 +53,7 @@ def create_project(name, sorting_algorithm_name, public, join_code, description,
     test_proxy = DBProxy.get_proxy(proxy_id, database_model=False)
     print(f'new proxy from db: {test_proxy.roundList}')
 
-    return '', ''
+    return f'created project {name}', 'success'
 
 def delete_project(project_name):
     # Get the project id

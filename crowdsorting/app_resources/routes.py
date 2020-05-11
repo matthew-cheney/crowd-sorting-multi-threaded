@@ -80,12 +80,12 @@ def dashboard():
 
 @app.route('/consentform', methods=['GET'])
 @login_required
-def consent_form():
+def consent_form(admin=False):
     project_name = request.cookies.get('current_project')
     project = DBProxy.get_project(project_name=project_name)
     return render_template('consentform.html',
                            consent_form_text=project.consent_form,
-                           admin=False)
+                           admin=admin)
 
 @app.route('/signconsent', methods=['POST'])
 @login_required
@@ -104,7 +104,7 @@ def sign_consent():
 @valid_current_project
 def sorter(admin=False, pair_id=None):
     email = get_email_from_request()
-    project_name = request.cookies.get('current_project')
+    project_name = get_current_project()
     if not DBProxy.user_has_signed_consent(email, project_name):
         return redirect(url_for('consent_form'))
     project = DBProxy.get_project(project_name=project_name)
@@ -201,12 +201,16 @@ def hard_easy():
 def sorted():
     return render_template('sorted.html')
 
-@app.route('/tower', methods=['GET'])
+@app.route('/tower', methods=['GET', 'POST'])
 @login_required
 @admin_required
 @valid_current_project
 def tower():
+    email = get_email_from_request()
     project_name = get_current_project()
+    if not DBProxy.user_has_signed_consent(email, project_name):
+        return consent_form(admin=True)
+
     proxy_id = DBProxy.get_proxy_id(project_name=project_name)
     project_proxy = DBProxy.get_proxy(proxy_id, database_model=False)
 
@@ -265,6 +269,9 @@ def add_project():
         description=description,
         files=request.files.getlist("file"),
     )
+    if status == 'success':
+        DBProxy.add_user_to_project(email=get_email_from_request(),
+                                    project_name=project_name)
     flash(message, status)
     return redirect(url_for('dashboard'))
 
