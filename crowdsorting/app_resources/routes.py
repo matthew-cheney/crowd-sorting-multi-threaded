@@ -354,3 +354,12 @@ def remove_self():
     if project_name == current_project:
         res.set_cookie('current_project', '', max_age=0)
     return res
+
+
+@app.route('/forcereturn', methods=['POST'])
+@login_required
+@admin_required
+def force_return():
+    pair_id = request.form.get('pair_id')
+    DBProxy.return_pair(pair_id)
+    return redirect(url_for('tower'))
