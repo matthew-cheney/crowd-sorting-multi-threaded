@@ -306,7 +306,8 @@ def add_doc_pairs(project_id, id_pairs):
         doc2_id = int(pair[1])
         doc1_name = get_doc_name(doc1_id)
         doc2_name = get_doc_name(doc2_id)
-        db.session.add(DocPair(project_id=project_id,
+        db.session.add(DocPair(id=str(uuid.uuid4()),
+                               project_id=project_id,
                                doc1_id=doc1_id,
                                doc2_id=doc2_id,
                                doc1_name=doc1_name,
@@ -364,6 +365,8 @@ def submit_doc_pair(pair_id, preferred_doc_id):
     if pair is None:
         return False
     if pair.complete:
+        pair.checked_out = False
+        db.session.commit()
         return False
     preferred_doc = db.session.query(Doc).filter_by(id=preferred_doc_id).first()
     if preferred_doc is None:

@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from crowdsorting import db
 from sqlalchemy import MetaData, ForeignKey
@@ -6,6 +7,7 @@ from sqlalchemy import Table, Column, Integer, String
 from sqlalchemy.orm import mapper
 from crowdsorting.database.database import metadata, db_session
 
+UUID_LENGTH = 36
 DOC_NAME_LENGTH = 120
 PROJECT_NAME_LENGTH = 120
 SA_NAME_LENGTH = 120
@@ -158,7 +160,7 @@ class Consent(db.Model):
 class DocPair(db.Model):
     __bind_key__ = 'doc_pairs'
     __tablename__ = 'doc_pair'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(UUID_LENGTH), primary_key=True)
     project_id = db.Column(db.Integer)
     doc1_id = db.Column(db.Integer)
     doc2_id = db.Column(db.Integer)
