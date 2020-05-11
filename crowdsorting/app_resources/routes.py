@@ -202,12 +202,24 @@ def tower():
     proxy_id = DBProxy.get_proxy_id(project_name=project_name)
     project_proxy = DBProxy.get_proxy(proxy_id, database_model=False)
 
+    project_model = DBProxy.get_project(project_name=project_name)
+
     def time_left(expiration_time):
         time_seconds = expiration_time - time.time()
-        minutes = time_seconds % 60
+        seconds = int(time_seconds % 60)
+        minutes = floor(time_seconds / 60)
+        return f'{minutes} minute{("" if minutes == 1 else "s")}, ' \
+               f'{seconds} second{("" if seconds == 1 else "s")}'
+
+    roundList = DBProxy.get_round_list(project_name)
+    checked_out = [x for x in roundList if (x.checked_out and x.expiration_time > time.time())]
 
     return render_template('tower.html',
-                           project_proxy=project_proxy)
+                           project_proxy=project_proxy,
+                           time_left=time_left,
+                           project_model=project_model,
+                           roundList=roundList,
+                           checked_out=checked_out)
 
 @app.route('/accountinfo', methods=['GET'])
 def accountinfo():

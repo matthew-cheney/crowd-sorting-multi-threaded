@@ -304,9 +304,13 @@ def add_doc_pairs(project_id, id_pairs):
     for pair in id_pairs:
         doc1_id = int(pair[0])
         doc2_id = int(pair[1])
+        doc1_name = get_doc_name(doc1_id)
+        doc2_name = get_doc_name(doc2_id)
         db.session.add(DocPair(project_id=project_id,
                                doc1_id=doc1_id,
                                doc2_id=doc2_id,
+                               doc1_name=doc1_name,
+                               doc2_name=doc2_name,
                                expiration_time=time.time()))
     db.session.commit()
 
@@ -369,6 +373,9 @@ def make_comparison(judge_id, preferred_doc_name, unpreferred_doc_name,
                               used_in_sorting=used_in_sorting,
                               project_name=project_name,
                               sorting_proxy_id=sorting_proxy_id))
+    if used_in_sorting:
+        project = db.session.query(Project).filter_by(name=project_name).first()
+        project.comparisons_made += 1
     db.session.commit()
 
 
@@ -407,3 +414,8 @@ def get_proxy_id(project_name):
     if project is None:
         return False
     return project.sorting_algorithm_id
+
+
+def get_round_list(project_name):
+    project_id = get_project_id(project_name)
+    return db.session.query(DocPair).filter_by(project_id=project_id).all()

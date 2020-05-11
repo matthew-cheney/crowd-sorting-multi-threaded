@@ -65,6 +65,7 @@ class Project(db.Model):
     # docs = db.relationship('Doc', cascade='all')
     # judgments = db.relationship('Judgment', cascade='all')
     join_code = db.Column(db.String(JOIN_CODE_LENGTH), nullable=True)
+    comparisons_made = db.Column(db.Integer, default=0)
 
     def __repr__(self):
         return f"{self.name}"
@@ -161,6 +162,8 @@ class DocPair(db.Model):
     project_id = db.Column(db.Integer)
     doc1_id = db.Column(db.Integer)
     doc2_id = db.Column(db.Integer)
+    doc1_name = db.Column(db.String(DOC_NAME_LENGTH))
+    doc2_name = db.Column(db.String(DOC_NAME_LENGTH))
     preferred_id = db.Column(db.Integer, nullable=True)
     checked_out = db.Column(db.Boolean, default=False)
     complete = db.Column(db.Boolean, default=False)

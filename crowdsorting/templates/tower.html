@@ -13,48 +13,53 @@
 <hr/>
 <div class="row text-center">
     <div class="col-lg-3">
-        <h4>Comparisons made:<br>{{ project_proxy.get_number_comparisons_made() }}</h4>
+        <h4>Comparisons made:<br>{{ project_model.comparisons_made }}</h4>
     </div>
     <div class="col-lg-3">
-        <h4>Comparisons left:<br>{{ project_proxy.get_total_comparisons_left() }}</h4>
+        <h4>Comparisons left:<br>{{ project_proxy.total_comparisons - project_model.comparisons_made }}</h4>
     </div>
     <div class="col-lg-3">
         <h4>Active judges:<br>{{ active_judges|length }}</h4>
     </div>
     <div class="col-lg-3">
-        <h4>Confidence:<br>{{ confidence }} %</h4>
+        <h4>Confidence:<br>{{ project_proxy.get_confidence()|int }} %</h4>
     </div>
 </div>
 <hr/>
 <div class="row">
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <h3 class="text-center">RoundList</h3>
-        {% for pair in roundList %}
-        {{ pair[0]|truncate(25) }}<br/>
-        {{ pair[1]|truncate(25) }}
-        <hr/>
-        {% endfor %}
+        <table style="width: 100%">
+            {% for pair in roundList %}
+            <tr style="border-bottom: 3px solid grey; width: 100%;">
+                <td>
+                    <input type="checkbox" {% if pair.complete %}checked{% endif %} disabled>
+                </td>
+                <td>
+                    {% if pair.complete %}<strike>{% endif %}{{ pair.doc1_name|truncate(25) }}<br/>
+                    {{ pair.doc2_name|truncate(25) }}{% if pair.complete %}</strike>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
     </div>
-    <div class="col-lg-4">
-        <h3 class="text-center">Users and Pairs</h3>
-        {% for pair in pairsCheckedOut %}
+    <div class="col-lg-6">
+        <h3 class="text-center">Pairs Checked Out</h3>
+        {% for pair in checked_out %}
         <strong>{{ pair.user_checked_out_by }}</strong><br/>
-        <i>Time left (s): {{ pair.get_time_remaining() }}</i><br/>
-        {{ pair.doc1.name|truncate(25) }}<br/>
-        {{ pair.doc2.name|truncate(25) }}<br/>
-        Opted out: {{ pair.users_opted_out|length }}
+        <i>Time left (s): {{ time_left(pair.expiration_time) }}</i><br/>
+        {{ pair.doc1_name|truncate(25) }}<br/>
+        {{ pair.doc2_name|truncate(25) }}<br/>
+        Opted out: {{ pair.times_rejected }}
         <form method="POST" action="forcereturn">
-            <input type="hidden" value="{{ pair.doc1.name }}" name="doc_one">
-            <input type="hidden" value="{{ pair.doc2.name }}" name="doc_two">
-            <input type="hidden" value="{{ current_project }}" name="project_name">
+            <input type="hidden" value="{{ pair.id }}" name="pair_id">
             <input type="hidden" value="{{ pair.user_checked_out_by }}" name="user_email">
-            <input type="hidden" value="{{ pair.pair_id }}" name="pair_id">
             <button type="submit" class="btn btn-md btn-primary">Force Return</button>
         </form>
         <hr/>
         {% endfor %}
     </div>
-    <div class="col-lg-4">
+    <!--<div class="col-lg-4">
         <h3 class="text-center">Pairs Waiting for Recheckout</h3>
         {% for pair in pairsReadyForRecheckout %}
         {{ pair.doc1.name|truncate(25) }}<br/>
@@ -70,6 +75,6 @@
         </form>
         <hr/>
         {% endfor %}
-    </div>
+    </div>-->
 </div>
 {% endblock content %}
