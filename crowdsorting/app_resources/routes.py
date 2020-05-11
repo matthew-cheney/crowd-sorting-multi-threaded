@@ -102,13 +102,16 @@ def sign_consent():
 @app.route('/sorter', methods=['GET'])
 @login_required
 @valid_current_project
-def sorter():
+def sorter(admin=False, pair_id=None):
     email = get_email_from_request()
     project_name = request.cookies.get('current_project')
     if not DBProxy.user_has_signed_consent(email, project_name):
         return redirect(url_for('consent_form'))
     project = DBProxy.get_project(project_name=project_name)
-    pair, success_code = PairSelector.get_pair(project_name, email)
+    if not admin:
+        pair, success_code = PairSelector.get_pair(project_name, email)
+    else:
+        pair, success_code = DBProxy.check_out_pair_by_id(pair_id, email)
     if success_code == 1:
         flash('no pair currently available', 'warning')
         return render_template('instructions.html')
@@ -121,6 +124,9 @@ def sorter():
     if success_code == 4:
         flash('user not found', 'warning')
         return redirect(url_for('home'))
+    if success_code == 5:
+        flash('pair not found', 'warning')
+        return redirect(url_for('tower'))
     file_one_contents = DBProxy.get_doc_contents(pair.doc1_id)
     file_two_contents = DBProxy.get_doc_contents(pair.doc2_id)
     return render_template('sorter.html',
@@ -132,7 +138,7 @@ def sorter():
                            timeout=120*1000,
                            file_one=file_one_contents,
                            file_two=file_two_contents,
-                           admin=False
+                           admin=admin
                            )
 
 @app.route('/submitAnswer', methods=['POST'])
@@ -180,6 +186,7 @@ def hard_easy():
     doc2_id = request.form.get('file_two_id')
     pair_id = request.form.get('pair_id')
     DBProxy.add_doc_pair_reject(judge_id=DBProxy.get_judge_id(email),
+                                email=email,
                                 project_name=project,
                                 doc1_id=doc1_id,
                                 doc2_id=doc2_id,
@@ -197,6 +204,7 @@ def sorted():
 @app.route('/tower', methods=['GET'])
 @login_required
 @admin_required
+@valid_current_project
 def tower():
     project_name = get_current_project()
     proxy_id = DBProxy.get_proxy_id(project_name=project_name)
@@ -222,6 +230,15 @@ def tower():
                            roundList=roundList,
                            checked_out=checked_out,
                            active_judges=active_judges)
+
+
+@app.route('/adminsort', methods=['POST'])
+@login_required
+@admin_required
+def admin_sort():
+    pair_id = request.form.get('pair_id')
+    return sorter(admin=True, pair_id=pair_id)
+
 
 @app.route('/accountinfo', methods=['GET'])
 def accountinfo():
@@ -363,3 +380,5 @@ def force_return():
     pair_id = request.form.get('pair_id')
     DBProxy.return_pair(pair_id)
     return redirect(url_for('tower'))
+
+

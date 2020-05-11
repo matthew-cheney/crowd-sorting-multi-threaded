@@ -175,14 +175,25 @@ class DocPair(db.Model):
         return f'doc1_id={self.doc1_id}; doc2_id={self.doc2_id}'
 
 class DocPairReject(db.Model):
-    __bind_key__ = 'sorting_algorithms'
-    __tablename__ = 'doc_pair_rejects'
+    __bind_key__ = 'doc_pairs'
+    __tablename__ = 'doc_pair_reject'
     id = db.Column(db.Integer, primary_key=True)
     judge_id = db.Column(db.Integer, nullable=False)
     project_name = db.Column(db.String(PROJECT_NAME_LENGTH), nullable=False)
     doc1_id = db.Column(db.Integer)
     doc2_id = db.Column(db.Integer)
     doc_pair_id = db.Column(db.Integer)
+    date_rejected = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class DocPairRejectLog(db.Model):
+    __bind_key__ = 'sorting_algorithms'
+    __tablename__ = 'doc_pair_reject_log'
+    id = db.Column(db.Integer, primary_key=True)
+    judge_email = db.Column(db.Integer, nullable=True)
+    project_name = db.Column(db.String(PROJECT_NAME_LENGTH), nullable=False)
+    doc1_name = db.Column(db.String(DOC_NAME_LENGTH))
+    doc2_name = db.Column(db.String(DOC_NAME_LENGTH))
     date_rejected = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 

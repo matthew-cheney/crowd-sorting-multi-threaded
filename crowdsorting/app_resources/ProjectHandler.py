@@ -88,6 +88,7 @@ def start_new_round(project_name):
     print(f'old round: {proxy.roundList}')
     PairSelector.process_doc_pairs(proxy, proxy_id)
     PairSelector.turn_over_round(proxy)
+    DBProxy.clear_doc_pair_rejects(project_name)
     PairSelector.populate_doc_pairs(proxy)
     DBProxy.update_proxy(proxy_id, proxy=proxy)
     print(f'new round: {proxy.roundList}')

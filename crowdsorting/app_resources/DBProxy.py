@@ -6,7 +6,7 @@ import uuid
 from crowdsorting import db
 from crowdsorting.app_resources.CustomExceptions import DocNotInDatabase
 from crowdsorting.database.models import Judge, Project, Doc, SortingProxy, \
-    DocPair, DocPairReject, Consent, Comparison
+    DocPair, DocPairReject, Consent, Comparison, DocPairRejectLog
 from crowdsorting.settings.configurables import *
 
 def is_user_exists(email):
@@ -326,6 +326,17 @@ def get_completed_doc_pairs(project_id):
     return pairs
 
 
+def check_out_pair_by_id(pair_id, email):
+    pair = db.session.query(DocPair).filter_by(id=pair_id).first()
+    if pair is None:
+        return None, 5
+    pair.checked_out = True
+    pair.user_checked_out_by = email
+    pair.expiration_time = time.time() + PAIR_LIFE_SECONDS
+    db.session.commit()
+    return pair, 0
+
+
 def get_doc_contents(doc_id):
     doc = db.session.query(Doc).filter_by(id=doc_id).first()
     if doc is None:
@@ -404,10 +415,16 @@ def return_pair(pair_id, too_hard=False):
     db.session.commit()
 
 
-def add_doc_pair_reject(judge_id, project_name, doc1_id, doc2_id, doc_pair_id):
+def add_doc_pair_reject(judge_id, email, project_name, doc1_id, doc2_id, doc_pair_id):
     db.session.add(DocPairReject(
         judge_id=judge_id, project_name=project_name,
         doc1_id=doc1_id, doc2_id=doc2_id, doc_pair_id=doc_pair_id))
+    doc1_name = get_doc_name(doc1_id)
+    doc2_name = get_doc_name(doc2_id)
+    db.session.add(DocPairRejectLog(
+        judge_email=email, project_name=project_name, doc1_name=doc1_name,
+        doc2_name=doc2_name
+    ))
     db.session.commit()
 
 
@@ -421,3 +438,8 @@ def get_proxy_id(project_name):
 def get_round_list(project_name):
     project_id = get_project_id(project_name)
     return db.session.query(DocPair).filter_by(project_id=project_id).all()
+
+
+def clear_doc_pair_rejects(project_name):
+    db.session.query(DocPairReject).filter_by(project_name=project_name).delete()
+    db.session.commit()

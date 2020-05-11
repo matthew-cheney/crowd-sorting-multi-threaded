@@ -48,7 +48,10 @@
                                 Opted out: {{ pair.times_rejected }}
                             </td>
                             <td>
-                                <button class="btn btn-small btn-primary">Sort Now</button>
+                                <form action="adminsort" method="POST">
+                                    <input type="hidden" name="pair_id" value="{{ pair.id }}">
+                                    <button type="submit" class="btn btn-small btn-primary">Sort Now</button>
+                                </form>
                             </td>
                         </tr>
                     </table>
