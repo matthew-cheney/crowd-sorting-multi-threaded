@@ -393,12 +393,14 @@ def get_doc_name(doc_id):
     return doc.name
 
 
-def return_pair(pair_id):
+def return_pair(pair_id, too_hard=False):
     pair = db.session.query(DocPair).filter_by(id=pair_id).first()
     if pair is None:
         return
     pair.checked_out = False
     pair.user_checked_out_by = ''
+    if too_hard:
+        pair.times_rejected += 1
     db.session.commit()
 
 

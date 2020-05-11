@@ -184,7 +184,7 @@ def hard_easy():
                                 doc1_id=doc1_id,
                                 doc2_id=doc2_id,
                                 doc_pair_id=pair_id)
-    DBProxy.return_pair(pair_id)
+    DBProxy.return_pair(pair_id, too_hard=True)
     return redirect(url_for('sorter'))
 
 
@@ -213,13 +213,15 @@ def tower():
 
     roundList = DBProxy.get_round_list(project_name)
     checked_out = [x for x in roundList if (x.checked_out and x.expiration_time > time.time())]
+    active_judges = {x.user_checked_out_by for x in checked_out}
 
     return render_template('tower.html',
                            project_proxy=project_proxy,
                            time_left=time_left,
                            project_model=project_model,
                            roundList=roundList,
-                           checked_out=checked_out)
+                           checked_out=checked_out,
+                           active_judges=active_judges)
 
 @app.route('/accountinfo', methods=['GET'])
 def accountinfo():

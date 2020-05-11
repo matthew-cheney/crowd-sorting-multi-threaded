@@ -36,8 +36,22 @@
                     <input type="checkbox" {% if pair.complete %}checked{% endif %} disabled>
                 </td>
                 <td>
-                    {% if pair.complete %}<strike>{% endif %}{{ pair.doc1_name|truncate(25) }}<br/>
-                    {{ pair.doc2_name|truncate(25) }}{% if pair.complete %}</strike>{% endif %}
+                    <table style="width: 100%;">
+                        <tr>
+                            <td colspan="2">
+                            {% if pair.complete %}<strike>{% endif %}{{ pair.doc1_name|truncate(25) }}<br/>
+                            {{ pair.doc2_name|truncate(25) }}{% if pair.complete %}</strike>{% endif %}
+                            </td>
+                        </tr>
+                        <tr class="text-center">
+                            <td>
+                                Opted out: {{ pair.times_rejected }}
+                            </td>
+                            <td>
+                                <button class="btn btn-small btn-primary">Sort Now</button>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
             {% endfor %}
