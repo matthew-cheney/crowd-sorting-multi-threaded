@@ -199,7 +199,11 @@ def hard_easy():
 @login_required
 @admin_required
 def sorted():
-    return render_template('sorted.html')
+    project_name = get_current_project()
+    proxy_id = DBProxy.get_proxy_id(project_name)
+    project_proxy = DBProxy.get_proxy(proxy_id, database_model=False)
+    return render_template('sorted.html', project_proxy=project_proxy,
+                           project_model = DBProxy.get_project(project_name=project_name))
 
 @app.route('/tower', methods=['GET', 'POST'])
 @login_required

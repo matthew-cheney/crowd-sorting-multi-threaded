@@ -108,7 +108,7 @@ class ACJProxy:
         self.acj.comp([preferred_id, unpreferred_id], True)
 
     def new_round(self):
-        print(f'tring to start new round')
+        print(f'trying to start new round')
         self.acj.step = len(self.acj.roundList)
         self.acj.nextPair()
         print(f'old ACJProxy roundList: {self.roundList}')
@@ -140,7 +140,7 @@ class ACJProxy:
             self.roundList = self.acj.roundList[:]
         return True
 
-    def get_sorted(self, allDocs, allJudgments):
+    def get_sorted(self):
         # if isinstance(self.acj, type(None)):
         #     self.unpickle_acj(len(allDocs))
         # if len(allDocs) < 1:

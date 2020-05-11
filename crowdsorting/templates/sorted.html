@@ -2,13 +2,13 @@
 
 {% block content %}
 <h2>Sorted Files</h2>
-<h3>{{ preferred_prompt }}</h3>
-{% for file in sortedFiles %}
+<h3>{{ project_model.preferred_prompt }}</h3>
+{% for file in project_proxy.get_sorted() %}
 {{ file }}<br>
 {% endfor %}
-<h3>{{ unpreferred_prompt }}</h3>
+<h3>{{ project_model.unpreferred_prompt }}</h3>
 <br><br>
-<p>Confidence: {{ confidence }}%</p>
-<p>Judgments made: {{ number_of_judgments }} / {{ possible_judgments }}</p>
-<p>Number of docs: {{ number_of_docs }}</p>
+<p>Confidence: {{ project_proxy.get_confidence()|int }}%</p>
+<p>Judgments made: {{ project_model.comparisons_made }} / {{ project_proxy.total_comparisons }}</p>
+<p>Number of docs: {{ project_model.number_of_docs }}</p>
 {% endblock content %}
