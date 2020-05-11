@@ -166,6 +166,7 @@ class DocPair(db.Model):
     complete = db.Column(db.Boolean, default=False)
     times_rejected = db.Column(db.Integer, default=0)
     expiration_time = db.Column(db.Integer, nullable=False)
+    user_checked_out_by = db.Column(db.String(EMAIL_LENGTH), nullable=True, default='')
 
     def __repr__(self):
         return f'doc1_id={self.doc1_id}; doc2_id={self.doc2_id}'

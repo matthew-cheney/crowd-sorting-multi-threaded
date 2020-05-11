@@ -293,6 +293,7 @@ def get_pair(project_name, email):
     for pair in pairs:
         if pair.id not in pair_rejects and (not pair.checked_out or pair.expiration_time < time.time()):
             pair.checked_out = True
+            pair.user_checked_out_by = email
             pair.expiration_time = time.time() + PAIR_LIFE_SECONDS
             db.session.commit()
             return pair, 0
@@ -390,6 +391,7 @@ def return_pair(pair_id):
     if pair is None:
         return
     pair.checked_out = False
+    pair.user_checked_out_by = ''
     db.session.commit()
 
 
@@ -398,3 +400,10 @@ def add_doc_pair_reject(judge_id, project_name, doc1_id, doc2_id, doc_pair_id):
         judge_id=judge_id, project_name=project_name,
         doc1_id=doc1_id, doc2_id=doc2_id, doc_pair_id=doc_pair_id))
     db.session.commit()
+
+
+def get_proxy_id(project_name):
+    project = db.session.query(Project).filter_by(name=project_name).first()
+    if project is None:
+        return False
+    return project.sorting_algorithm_id

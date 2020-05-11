@@ -16,9 +16,11 @@ dummy_judge = Judge(id=None, firstName='', lastName='', email='', projects=[], c
 
 @app.context_processor
 def utility_processor():
-    return {'judge': get_judge(),
+    return {
+            'judge': get_judge(),
             'StringList': StringList,
-            'current_project': get_current_project()}
+            'current_project': get_current_project()
+            }
 
 def get_judge():
     judge = DBProxy.get_judge(get_email_from_request())
@@ -196,7 +198,16 @@ def sorted():
 @login_required
 @admin_required
 def tower():
-    return render_template('tower.html')
+    project_name = get_current_project()
+    proxy_id = DBProxy.get_proxy_id(project_name=project_name)
+    project_proxy = DBProxy.get_proxy(proxy_id, database_model=False)
+
+    def time_left(expiration_time):
+        time_seconds = expiration_time - time.time()
+        minutes = time_seconds % 60
+
+    return render_template('tower.html',
+                           project_proxy=project_proxy)
 
 @app.route('/accountinfo', methods=['GET'])
 def accountinfo():
